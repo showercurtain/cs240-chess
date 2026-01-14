@@ -17,8 +17,11 @@ public record ChessPosition(int row, int col) {
         public static final Offset RIGHT = new Offset(0,1);
         /**
          * Directions:
+         * <br>
          * 7 0 1
+         * <br>
          * 6 * 2
+         * <br>
          * 5 4 3
          * @param direction direction to offset
          * @return Offset towards specified direction
@@ -56,7 +59,7 @@ public record ChessPosition(int row, int col) {
      * @return whether the ChessPosition is a valid position on the board
      */
     public boolean onBoard() {
-        return row >= 0 && col >= 0 && row < 8 && col < 8;
+        return row > 0 && col > 0 && row <= 8 && col <= 8;
     }
 
     /**
@@ -65,6 +68,14 @@ public record ChessPosition(int row, int col) {
      */
     public ChessPosition withOffset(Offset offset) {
         return new ChessPosition(row + offset.row_offset(), col + offset.col_offset());
+    }
+
+    /**
+     * @param position another position
+     * @return The offset between this position and the other
+     */
+    public Offset offsetOf(ChessPosition position) {
+        return new Offset(row - position.row, col - position.col);
     }
 
     /**

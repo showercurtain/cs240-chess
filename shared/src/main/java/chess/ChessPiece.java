@@ -1,5 +1,7 @@
 package chess;
 
+import chess.moves.*;
+
 import java.util.Collection;
 
 /**
@@ -8,17 +10,23 @@ import java.util.Collection;
  * Note: You can add to this class, but you may not alter
  * signature of the existing methods.
  */
-public record ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
+public record ChessPiece(ChessGame.TeamColor pieceColor, PieceType type) {
     /**
      * The various different chess piece options
      */
     public enum PieceType {
-        KING,
-        QUEEN,
-        BISHOP,
-        KNIGHT,
-        ROOK,
-        PAWN
+        KING(new King()),
+        QUEEN(new Queen()),
+        BISHOP(new Bishop()),
+        KNIGHT(new Knight()),
+        ROOK(new Rook()),
+        PAWN(new Pawn());
+
+        PieceType(MovingChessPiece moves) {
+            this.MOVES_SINGLETON = moves;
+        }
+
+        public final MovingChessPiece MOVES_SINGLETON;
     }
 
     /**
@@ -43,7 +51,6 @@ public record ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType ty
      * @return Collection of valid moves
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        //TODO:
-        throw new RuntimeException("Not implemented");
+        return type.MOVES_SINGLETON.pieceMoves(board, myPosition, pieceColor);
     }
 }

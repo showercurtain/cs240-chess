@@ -32,4 +32,6 @@ public record ChessMove(ChessPosition startPosition, ChessPosition endPosition, 
     public ChessPiece.PieceType getPromotionPiece() {
         return promotionPiece;
     }
+
+    public ChessMove withPromotion(ChessPiece.PieceType promotion) { return new ChessMove(startPosition, endPosition, promotion ); }
 }

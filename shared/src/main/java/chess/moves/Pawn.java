@@ -1,22 +1,13 @@
 package chess.moves;
 
-import chess.ChessBoard;
-import chess.ChessGame;
-import chess.ChessMove;
-import chess.ChessPosition;
+import chess.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 public class Pawn implements MovingChessPiece {
-    private boolean moved;
-    private boolean skipped;
-
-    public Pawn() {
-        moved = false;
-        skipped = false;
-    }
+    public Pawn() { }
 
     private static ChessPosition.Offset forwardPosition(ChessGame.TeamColor color) {
         // The pawn is the only chess piece that cares about the direction it's facing
@@ -38,15 +29,38 @@ public class Pawn implements MovingChessPiece {
         ChessPosition right = myPosition.withOffset(rightOffset);
         ChessPosition forwardTwo = myPosition.withOffset(forwardTwoOffset);
 
-        if (board.getPiece(forward) == null) {
+        // Normal forward movement
+        if (forward.onBoard() && board.getPiece(forward) == null) {
             moves.add(new ChessMove(myPosition, forward, null));
-            if (!moved && board.getPiece(forwardTwo) == null) {
+            // Test cases require that the pawn can move one extra space
+            // when in the starting rank, NOT on it's first move
+            if (forwardTwo.onBoard() && (myPosition.getRow() == 2 || myPosition.getRow() == 7) && board.getPiece(forwardTwo) == null) {
                 moves.add(new ChessMove(myPosition, forwardTwo, null));
             }
         }
 
-        //TODO: Implement capturing
+        // Capturing
+        if (left.onBoard() && board.checkCapture(left, color)) {
+            moves.add(new ChessMove(myPosition, left, null));
+        }
 
-        return moves;
+        if (right.onBoard() && board.checkCapture(right, color)) {
+            moves.add(new ChessMove(myPosition, right, null));
+        }
+
+        ArrayList<ChessMove> promoteMoves = new ArrayList<>();
+
+        for (ChessMove move : moves) {
+            if (move.endPosition().row() == 1 || move.endPosition().row() == 8) {
+                promoteMoves.add(move.withPromotion(ChessPiece.PieceType.BISHOP));
+                promoteMoves.add(move.withPromotion(ChessPiece.PieceType.ROOK));
+                promoteMoves.add(move.withPromotion(ChessPiece.PieceType.KNIGHT));
+                promoteMoves.add(move.withPromotion(ChessPiece.PieceType.QUEEN));
+            } else {
+                promoteMoves.add(move);
+            }
+        }
+
+        return promoteMoves;
     }
 }
