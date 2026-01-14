@@ -1,5 +1,9 @@
 package chess;
 
+import org.junit.jupiter.api.Test;
+
+import java.util.Arrays;
+
 /**
  * A chessboard that can hold and rearrange chess pieces.
  * <p>
@@ -24,7 +28,6 @@ public class ChessBoard {
 
     public ChessBoard() {
         pieces = new ChessPiece[64];
-        //resetBoard();
     }
 
     private static int indexOf(ChessPosition position) {
@@ -67,33 +70,86 @@ public class ChessBoard {
      * (How the game of chess normally starts)
      */
     public void resetBoard() {
+        pieces = new ChessPiece[64];
         for (int i = 1; i <= 8; i++) {
-            addPiece(new ChessPosition(i, 2), W_PAWN);
-            addPiece(new ChessPosition(i, 7), B_PAWN);
+            addPiece(new ChessPosition(2, i), W_PAWN);
+            addPiece(new ChessPosition(7, i), B_PAWN);
         }
 
         addPiece(new ChessPosition(1, 1), W_ROOK);
-        addPiece(new ChessPosition(1, 8), B_ROOK);
+        addPiece(new ChessPosition(8, 1), B_ROOK);
 
-        addPiece(new ChessPosition(8, 1), W_ROOK);
+        addPiece(new ChessPosition(1, 8), W_ROOK);
         addPiece(new ChessPosition(8, 8), B_ROOK);
 
-        addPiece(new ChessPosition(2, 1), W_KNIGHT);
-        addPiece(new ChessPosition(2, 8), B_KNIGHT);
+        addPiece(new ChessPosition(1, 2), W_KNIGHT);
+        addPiece(new ChessPosition(8, 2), B_KNIGHT);
 
-        addPiece(new ChessPosition(7, 1), W_KNIGHT);
-        addPiece(new ChessPosition(7, 8), B_KNIGHT);
+        addPiece(new ChessPosition(1, 7), W_KNIGHT);
+        addPiece(new ChessPosition(8, 7), B_KNIGHT);
 
-        addPiece(new ChessPosition(3, 1), W_BISHOP);
-        addPiece(new ChessPosition(3, 8), B_BISHOP);
+        addPiece(new ChessPosition(1, 3), W_BISHOP);
+        addPiece(new ChessPosition(8, 3), B_BISHOP);
 
-        addPiece(new ChessPosition(6, 1), W_BISHOP);
-        addPiece(new ChessPosition(6, 8), B_BISHOP);
+        addPiece(new ChessPosition(1, 6), W_BISHOP);
+        addPiece(new ChessPosition(8, 6), B_BISHOP);
 
-        addPiece(new ChessPosition(4, 1), W_KING);
-        addPiece(new ChessPosition(4, 8), B_KING);
+        addPiece(new ChessPosition(1, 4), W_QUEEN);
+        addPiece(new ChessPosition(8, 4), B_QUEEN);
 
-        addPiece(new ChessPosition(5, 1), W_KING);
-        addPiece(new ChessPosition(5, 8), B_KING);
+        addPiece(new ChessPosition(1, 5), W_KING);
+        addPiece(new ChessPosition(8, 5), B_KING);
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+        if (obj == null) return false;
+        if (this == obj) return true;
+        if (getClass() != obj.getClass()) return false;
+        ChessBoard other = (ChessBoard) obj;
+        for (int i=0; i < 64; i++) {
+            if (pieces[i] == null) {
+                if (other.pieces[i] != null) return false;
+            } else if (!pieces[i].equals(other.pieces[i])) return false;
+        }
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(pieces);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        for (int row=8; row >= 1; row--) {
+            builder.append('|');
+            for (int col=1; col <= 8; col++) {
+                ChessPiece piece = getPiece(new ChessPosition(row, col));
+                if (piece == null) {
+                    builder.append(" |");
+                    continue;
+                }
+                char rep = ' ';
+                boolean upper = piece.getTeamColor() == ChessGame.TeamColor.WHITE;
+                switch (piece.getPieceType()) {
+                    case PAWN -> rep = 'p';
+                    case ROOK -> rep = 'r';
+                    case KNIGHT -> rep = 'n';
+                    case BISHOP -> rep = 'b';
+                    case QUEEN -> rep = 'q';
+                    case KING -> rep = 'k';
+                }
+                if (upper) {
+                    builder.append(Character.toUpperCase(rep));
+                } else {
+                    builder.append(rep);
+                }
+                builder.append('|');
+            }
+            builder.append('\n');
+        }
+        return builder.toString();
     }
 }
