@@ -1,5 +1,8 @@
 package chess;
 
+import chess.moves.MovingChessPiece;
+import chess.moves.NullPiece;
+
 /**
  * A chessboard that can hold and rearrange chess pieces.
  * <p>
@@ -7,9 +10,14 @@ package chess;
  * signature of the existing methods.
  */
 public class ChessBoard {
+    private static final NullPiece NULL_PIECE = new NullPiece();
+    public record PieceState(ChessPiece piece, MovingChessPiece meta) { }
+
+    PieceState[] pieces;
 
     public ChessBoard() {
-        
+        pieces = new PieceState[32];
+        resetBoard();
     }
 
     /**
@@ -30,6 +38,10 @@ public class ChessBoard {
      * position
      */
     public ChessPiece getPiece(ChessPosition position) {
+        throw new RuntimeException("Not implemented");
+    }
+
+    public MovingChessPiece getPieceMeta(ChessPosition position) {
         throw new RuntimeException("Not implemented");
     }
 
