@@ -66,11 +66,27 @@ public class ChessBoard {
         return pieces[indexOf(position)];
     }
 
+    /**
+     * Checks whether a piece of a specified color can capture a piece at a location.
+     * Note that this function doesn't check whether the move is valid for that piece, only
+     * that it is a valid location for a piece to capture.
+     * @param position The position to check
+     * @param color The color of the moving piece
+     * @return Whether there is a piece at that location that can be captured
+     */
     public boolean checkCapture(ChessPosition position, ChessGame.TeamColor color) {
         ChessPiece piece = getPiece(position);
         return piece != null && piece.getTeamColor() != color;
     }
 
+    /**
+     * Checks whether a piece can move to a location, including capturing another piece
+     * Note that this function doesn't check whether the move is valid for that piece, only
+     * that it is a valid location for a piece to move to.
+     * @param position The position to check
+     * @param color The color of the moving piece
+     * @return True if the piece can move to that location
+     */
     public boolean checkMove(ChessPosition position, ChessGame.TeamColor color) {
         ChessPiece piece = getPiece(position);
         return piece == null || piece.getTeamColor() != color;

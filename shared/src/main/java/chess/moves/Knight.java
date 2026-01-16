@@ -10,7 +10,7 @@ import java.util.Collection;
 import java.util.List;
 
 public class Knight implements MovingChessPiece {
-    private static final ChessPosition.Offset[] OFFSETS = {
+    private static final ChessPosition.Offset[] MOVES = {
             new ChessPosition.Offset(1,2),
             new ChessPosition.Offset(2,1),
             new ChessPosition.Offset(1,-2),
@@ -24,7 +24,7 @@ public class Knight implements MovingChessPiece {
     @Override
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition, ChessGame.TeamColor color) {
         ArrayList<ChessMove> out = new ArrayList<>();
-        for (ChessPosition.Offset offset : OFFSETS) {
+        for (ChessPosition.Offset offset : MOVES) {
             ChessPosition newPos = myPosition.withOffset(offset);
             if (newPos.onBoard() && board.checkMove(newPos, color)) {
                 out.add(new ChessMove(myPosition, newPos, null));

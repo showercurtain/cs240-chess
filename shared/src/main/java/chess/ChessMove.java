@@ -33,5 +33,10 @@ public record ChessMove(ChessPosition startPosition, ChessPosition endPosition, 
         return promotionPiece;
     }
 
+    /**
+     * Creates a new ChessMove with the specified promotion piece
+     * @param promotion The promotion piece to use
+     * @return a new ChessMove with the promotion piece
+     */
     public ChessMove withPromotion(ChessPiece.PieceType promotion) { return new ChessMove(startPosition, endPosition, promotion ); }
 }

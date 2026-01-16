@@ -8,6 +8,7 @@ import java.util.Collection;
 public interface RayMovingPiece extends MovingChessPiece {
     int[] getRayDirections();
 
+    @Override
     default Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition, ChessGame.TeamColor color) {
         ArrayList<ChessMove> out = new ArrayList<>();
         for (int ray : getRayDirections()) {
