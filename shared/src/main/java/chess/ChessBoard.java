@@ -1,8 +1,7 @@
 package chess;
 
-import org.junit.jupiter.api.Test;
-
 import java.util.Arrays;
+import java.util.EnumSet;
 
 /**
  * A chessboard that can hold and rearrange chess pieces.
@@ -24,10 +23,22 @@ public class ChessBoard {
     private static final ChessPiece B_KING = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.KING);
     private static final ChessPiece B_QUEEN = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.QUEEN);
 
-    ChessPiece[] pieces;
+    public enum CastleState {
+        B_KING, // Black castle on king's side O-O
+        B_QUEEN, // Black castle on queen's side O-O-O
+        W_KING, // White castle on king's side O-O
+        W_QUEEN, // White castle on queen's side O-O-O
+    }
+
+    final ChessPiece[] pieces;
+
+    ChessPosition enPassant; // Stores the location that a pawn skips over on a move
+    EnumSet<CastleState> castleStates; // Stores which castle moves are still possible
 
     public ChessBoard() {
         pieces = new ChessPiece[64];
+        enPassant = null;
+        castleStates = EnumSet.noneOf(CastleState.class);
     }
 
     private static int indexOf(ChessPosition position) {
@@ -70,7 +81,8 @@ public class ChessBoard {
      * (How the game of chess normally starts)
      */
     public void resetBoard() {
-        pieces = new ChessPiece[64];
+        Arrays.fill(pieces, null);
+
         for (int i = 1; i <= 8; i++) {
             addPiece(new ChessPosition(2, i), W_PAWN);
             addPiece(new ChessPosition(7, i), B_PAWN);
@@ -99,6 +111,9 @@ public class ChessBoard {
 
         addPiece(new ChessPosition(1, 5), W_KING);
         addPiece(new ChessPosition(8, 5), B_KING);
+
+        enPassant = null;
+        castleStates = EnumSet.allOf(CastleState.class);
     }
 
     @Override
@@ -151,5 +166,25 @@ public class ChessBoard {
             builder.append('\n');
         }
         return builder.toString();
+    }
+
+    public ChessPosition getEnPassant() {
+        return enPassant;
+    }
+
+    public EnumSet<CastleState> getCastleStates() {
+        return castleStates;
+    }
+
+    public boolean mightCastle(CastleState move) {
+        return castleStates.contains(move);
+    }
+
+    public void setEnPassant(ChessPosition enPassant) {
+        this.enPassant = enPassant;
+    }
+
+    public void clearCastleState(CastleState state) {
+        castleStates.remove(state);
     }
 }
