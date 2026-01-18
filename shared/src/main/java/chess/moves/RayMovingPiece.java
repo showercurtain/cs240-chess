@@ -26,4 +26,23 @@ public interface RayMovingPiece extends MovingChessPiece {
 
         return out;
     }
+
+    @Override
+    default Collection<ChessMove> captureMoves(ChessBoard board, ChessPosition myPosition, ChessGame.TeamColor color) {
+        int[] rayList = getRayDirections();
+        ArrayList<ChessMove> out = new ArrayList<>(rayList.length);
+        for (int ray : rayList) {
+            for (ChessPosition move : myPosition.getRay(ray)) {
+                ChessPiece piece = board.getPiece(move);
+                if (piece != null) {
+                    if (!piece.getTeamColor().equals(color)) {
+                        out.add(new ChessMove(myPosition, move, null));
+                    }
+                    break;
+                }
+            }
+        }
+
+        return out;
+    }
 }

@@ -17,16 +17,12 @@ public class Pawn implements MovingChessPiece {
 
     @Override
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition, ChessGame.TeamColor color) {
-        ArrayList<ChessMove> moves = new ArrayList<>();
+        ArrayList<ChessMove> moves = new ArrayList<>(4);
 
         ChessPosition.Offset forwardOffset = forwardPosition(color);
-        ChessPosition.Offset leftOffset = forwardOffset.addOffset(ChessPosition.Offset.LEFT);
-        ChessPosition.Offset rightOffset = forwardOffset.addOffset(ChessPosition.Offset.RIGHT);
         ChessPosition.Offset forwardTwoOffset = forwardOffset.addOffset(forwardOffset);
 
         ChessPosition forward = myPosition.withOffset(forwardOffset);
-        ChessPosition left = myPosition.withOffset(leftOffset);
-        ChessPosition right = myPosition.withOffset(rightOffset);
         ChessPosition forwardTwo = myPosition.withOffset(forwardTwoOffset);
 
         // Normal forward movement
@@ -39,14 +35,7 @@ public class Pawn implements MovingChessPiece {
             }
         }
 
-        // Capturing
-        if (left.onBoard() && board.checkCapture(left, color)) {
-            moves.add(new ChessMove(myPosition, left, null));
-        }
-
-        if (right.onBoard() && board.checkCapture(right, color)) {
-            moves.add(new ChessMove(myPosition, right, null));
-        }
+        moves.addAll(captureMoves(board, myPosition, color));
 
         ArrayList<ChessMove> promoteMoves = new ArrayList<>();
 
@@ -62,5 +51,29 @@ public class Pawn implements MovingChessPiece {
         }
 
         return promoteMoves;
+    }
+
+    @Override
+    public Collection<ChessMove> captureMoves(ChessBoard board, ChessPosition myPosition, ChessGame.TeamColor color) {
+        ChessPosition.Offset forwardOffset = forwardPosition(color);
+
+        ChessPosition.Offset leftOffset = forwardOffset.addOffset(ChessPosition.Offset.LEFT);
+        ChessPosition.Offset rightOffset = forwardOffset.addOffset(ChessPosition.Offset.RIGHT);
+
+        ChessPosition left = myPosition.withOffset(leftOffset);
+        ChessPosition right = myPosition.withOffset(rightOffset);
+
+        ArrayList<ChessMove> moves = new ArrayList<>(2);
+
+        // Capturing
+        if (left.onBoard() && board.checkCapture(left, color)) {
+            moves.add(new ChessMove(myPosition, left, null));
+        }
+
+        if (right.onBoard() && board.checkCapture(right, color)) {
+            moves.add(new ChessMove(myPosition, right, null));
+        }
+
+        return moves;
     }
 }
