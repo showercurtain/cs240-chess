@@ -1,7 +1,5 @@
 package chess;
 
-import java.util.Optional;
-
 /**
  * Represents moving a chess piece on a chessboard
  * <p>
