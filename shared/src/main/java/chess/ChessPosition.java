@@ -1,8 +1,5 @@
 package chess;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Represents a single square position on a chess board
  * <p>
@@ -50,13 +47,5 @@ public record ChessPosition(int row, int col) {
      */
     public ChessPosition withOffset(Offset offset) {
         return new ChessPosition(row + offset.row_offset(), col + offset.col_offset());
-    }
-
-    /**
-     * @param position another position
-     * @return The offset between this position and the other
-     */
-    public Offset offsetOf(ChessPosition position) {
-        return new Offset(row - position.row, col - position.col);
     }
 }

@@ -3,7 +3,6 @@ package chess;
 import chess.moves.*;
 
 import java.util.Collection;
-import java.util.List;
 
 /**
  * Represents a single chess piece
