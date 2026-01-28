@@ -3,6 +3,7 @@ package chess;
 import chess.moves.*;
 
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Represents a single chess piece
@@ -14,19 +15,24 @@ public record ChessPiece(ChessGame.TeamColor pieceColor, PieceType type) {
     /**
      * The various different chess piece options
      */
-    public enum PieceType {
-        KING(new King()),
-        QUEEN(new Queen()),
-        BISHOP(new Bishop()),
-        KNIGHT(new Knight()),
-        ROOK(new Rook()),
-        PAWN(new Pawn());
+    public enum PieceType implements MoveCalculator {
+        KING(new KingMoveCalculator()),
+        QUEEN(new QueenMoveCalculator()),
+        BISHOP(new BishopMoveCalculator()),
+        KNIGHT(new KnightMoveCalculator()),
+        ROOK(new RookMoveCalculator()),
+        PAWN(new PawnMoveCalculator());
 
-        PieceType(MovingChessPiece moves) {
-            this.MOVES_SINGLETON = moves;
+        PieceType(MoveCalculator moves) {
+            this.MOVE_CALCULATOR = moves;
         }
 
-        public final MovingChessPiece MOVES_SINGLETON;
+        private final MoveCalculator MOVE_CALCULATOR;
+
+        @Override
+        public Collection<ChessMove> getMoves(ChessBoard board, ChessPosition position, ChessGame.TeamColor color) {
+            return MOVE_CALCULATOR.getMoves(board, position, color);
+        }
     }
 
     /**
@@ -51,6 +57,6 @@ public record ChessPiece(ChessGame.TeamColor pieceColor, PieceType type) {
      * @return Collection of valid moves
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        return type.MOVES_SINGLETON.pieceMoves(board, myPosition, pieceColor);
+        return type.getMoves(board, myPosition, pieceColor);
     }
 }

@@ -17,8 +17,6 @@ public class ChessBoard extends AbstractChessBoard {
     public ChessBoard() {
         super();
         pieces = new ChessPiece[64];
-        enPassant = null;
-        castleStates = EnumSet.noneOf(CastleState.class);
     }
 
     private static int indexOf(ChessPosition position) {

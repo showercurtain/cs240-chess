@@ -1,9 +1,7 @@
 package chess;
 
-import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Map;
-import java.util.Set;
 
 public abstract class AbstractChessBoard {
     public enum CastleState {
@@ -13,18 +11,18 @@ public abstract class AbstractChessBoard {
         W_QUEEN, // White castle on queen's side O-O-O
     }
 
-    ChessPiece W_PAWN = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.PAWN);
-    ChessPiece W_ROOK = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.ROOK);
-    ChessPiece W_KNIGHT = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.KNIGHT);
-    ChessPiece W_BISHOP = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.BISHOP);
-    ChessPiece W_KING = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.KING);
-    ChessPiece W_QUEEN = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.QUEEN);
-    ChessPiece B_PAWN = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.PAWN);
-    ChessPiece B_ROOK = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.ROOK);
-    ChessPiece B_KNIGHT = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.KNIGHT);
-    ChessPiece B_BISHOP = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.BISHOP);
-    ChessPiece B_KING = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.KING);
-    ChessPiece B_QUEEN = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.QUEEN);
+    static final ChessPiece W_PAWN = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.PAWN);
+    static final ChessPiece W_ROOK = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.ROOK);
+    static final ChessPiece W_KNIGHT = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.KNIGHT);
+    static final ChessPiece W_BISHOP = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.BISHOP);
+    static final ChessPiece W_KING = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.KING);
+    static final ChessPiece W_QUEEN = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.QUEEN);
+    static final ChessPiece B_PAWN = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.PAWN);
+    static final ChessPiece B_ROOK = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.ROOK);
+    static final ChessPiece B_KNIGHT = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.KNIGHT);
+    static final ChessPiece B_BISHOP = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.BISHOP);
+    static final ChessPiece B_KING = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.KING);
+    static final ChessPiece B_QUEEN = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.QUEEN);
 
     ChessPosition enPassant; // Stores the location that a pawn skips over on a move
     EnumSet<CastleState> castleStates; // Stores which castle moves are still possible
@@ -52,32 +50,6 @@ public abstract class AbstractChessBoard {
 
     public void clearCastleState(CastleState state) {
         castleStates.remove(state);
-    }
-
-    /**
-     * Checks whether a piece of a specified color can capture a piece at a location.
-     * Note that this function doesn't check whether the move is valid for that piece, only
-     * that it is a valid location for a piece to capture.
-     * @param position The position to check
-     * @param color The color of the moving piece
-     * @return Whether there is a piece at that location that can be captured
-     */
-    public boolean checkCapture(ChessPosition position, ChessGame.TeamColor color) {
-        ChessPiece piece = getPiece(position);
-        return piece != null && piece.getTeamColor() != color;
-    }
-
-    /**
-     * Checks whether a piece can move to a location, including capturing another piece
-     * Note that this function doesn't check whether the move is valid for that piece, only
-     * that it is a valid location for a piece to move to.
-     * @param position The position to check
-     * @param color The color of the moving piece
-     * @return True if the piece can move to that location
-     */
-    public boolean checkMove(ChessPosition position, ChessGame.TeamColor color) {
-        ChessPiece piece = getPiece(position);
-        return piece == null || piece.getTeamColor() != color;
     }
 
     /**

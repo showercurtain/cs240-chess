@@ -15,28 +15,10 @@ public record ChessPosition(int row, int col) {
         public static final Offset DOWN = new Offset(-1,0);
         public static final Offset LEFT = new Offset(0,-1);
         public static final Offset RIGHT = new Offset(0,1);
-        /**
-         * Directions:
-         * <br>
-         * 7 0 1
-         * <br>
-         * 6 * 2
-         * <br>
-         * 5 4 3
-         * @param direction direction to offset
-         * @return Offset towards specified direction
-         */
-        public static Offset offsetTo(int direction) {
-            int col_offset = direction % 4 == 0 ? 0 : 1 - (direction / 4) * 2;
-            direction = (direction + 2) % 8;
-            int row_offset = direction % 4 == 0 ? 0 : 1 - (direction / 4) * 2;
-
-            return new Offset(row_offset, col_offset);
-        }
-
-        public Offset addOffset(Offset offset) {
-            return new Offset(row_offset + offset.row_offset, col_offset + offset.col_offset);
-        }
+        public static final Offset UPLEFT = new Offset(1,-1);
+        public static final Offset DOWNRIGHT = new Offset(-1,1);
+        public static final Offset DOWNLEFT = new Offset(-1,-1);
+        public static final Offset UPRIGHT = new Offset(1,1);
     }
 
     /**
@@ -76,26 +58,5 @@ public record ChessPosition(int row, int col) {
      */
     public Offset offsetOf(ChessPosition position) {
         return new Offset(row - position.row, col - position.col);
-    }
-
-    /**
-
-     * Even numbers are rook rays, odd numbers are bishop rays
-     * @param direction which direction the ray should travel
-     * @return an ordered list of ChessPositions that represent a ray away from the object
-     */
-    public List<ChessPosition> getRay(int direction) {
-        Offset offset = Offset.offsetTo(direction);
-
-        ArrayList<ChessPosition> output = new ArrayList<>();
-        for (
-                ChessPosition current = withOffset(offset);
-                current.onBoard();
-                current = current.withOffset(offset)
-        ) {
-            output.add(current);
-        }
-
-        return output;
     }
 }
