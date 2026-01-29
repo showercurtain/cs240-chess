@@ -10,18 +10,18 @@ public abstract class AbstractChessBoard {
         W_QUEEN, // White castle on queen's side O-O-O
     }
 
-    ChessPiece W_PAWN = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.PAWN);
-    ChessPiece W_ROOK = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.ROOK);
-    ChessPiece W_KNIGHT = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.KNIGHT);
-    ChessPiece W_BISHOP = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.BISHOP);
-    ChessPiece W_KING = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.KING);
-    ChessPiece W_QUEEN = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.QUEEN);
-    ChessPiece B_PAWN = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.PAWN);
-    ChessPiece B_ROOK = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.ROOK);
-    ChessPiece B_KNIGHT = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.KNIGHT);
-    ChessPiece B_BISHOP = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.BISHOP);
-    ChessPiece B_KING = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.KING);
-    ChessPiece B_QUEEN = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.QUEEN);
+    public static final ChessPiece W_PAWN = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.PAWN);
+    public static final ChessPiece W_ROOK = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.ROOK);
+    public static final ChessPiece W_KNIGHT = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.KNIGHT);
+    public static final ChessPiece W_BISHOP = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.BISHOP);
+    public static final ChessPiece W_KING = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.KING);
+    public static final ChessPiece W_QUEEN = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.QUEEN);
+    public static final ChessPiece B_PAWN = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.PAWN);
+    public static final ChessPiece B_ROOK = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.ROOK);
+    public static final ChessPiece B_KNIGHT = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.KNIGHT);
+    public static final ChessPiece B_BISHOP = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.BISHOP);
+    public static final ChessPiece B_KING = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.KING);
+    public static final ChessPiece B_QUEEN = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.QUEEN);
 
     ChessPosition enPassant; // Stores the location that a pawn skips over on a move
     EnumSet<CastleState> castleStates; // Stores which castle moves are still possible
@@ -223,6 +223,7 @@ public abstract class AbstractChessBoard {
     public Collection<ChessMove> getAllMoves(ChessGame.TeamColor team) {
         ArrayList<ChessMove> moves = new ArrayList<>();
         for (Map.Entry<ChessPosition, ChessPiece> entry : getPieces().entrySet()) {
+            if (!entry.getValue().getTeamColor().equals(team)) continue;
             moves.addAll(entry.getValue().type().getMoves(this, entry.getKey(), team));
         }
 
