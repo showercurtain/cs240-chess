@@ -14,7 +14,7 @@ public class PawnMoveCalculator implements MoveCalculator {
     };
 
     @Override
-    public Collection<ChessMove> getMoves(ChessBoard board, ChessPosition position, ChessGame.TeamColor color) {
+    public Collection<ChessMove> getMoves(AbstractChessBoard board, ChessPosition position, ChessGame.TeamColor color) {
         ChessPosition.Offset direction = switch (color) {
             case WHITE -> ChessPosition.Offset.UP;
             case BLACK -> ChessPosition.Offset.DOWN;

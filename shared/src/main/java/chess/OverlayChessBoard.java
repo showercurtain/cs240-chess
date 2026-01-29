@@ -32,10 +32,14 @@ public class OverlayChessBoard extends AbstractChessBoard {
     public void clearBoard() {
         // This probably shouldn't be called on an overlay board...
 
-        changes = new HashMap<>();
+        resetOverlay();
         for (ChessPosition position : base.getPieces().keySet()) {
             changes.put(position, null);
         }
+    }
+
+    public void resetOverlay() {
+        changes = new HashMap<>();
     }
 
     @Override

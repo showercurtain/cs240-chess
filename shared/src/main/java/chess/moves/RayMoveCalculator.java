@@ -8,7 +8,8 @@ import java.util.Collection;
 public interface RayMoveCalculator extends MoveCalculator {
     ChessPosition.Offset[] getRays();
 
-    default Collection<ChessMove> getMoves(ChessBoard board, ChessPosition position, ChessGame.TeamColor color) {
+    @Override
+    default Collection<ChessMove> getMoves(AbstractChessBoard board, ChessPosition position, ChessGame.TeamColor color) {
         ArrayList<ChessMove> out = new ArrayList<>();
 
         for (ChessPosition.Offset ray : getRays()) {
