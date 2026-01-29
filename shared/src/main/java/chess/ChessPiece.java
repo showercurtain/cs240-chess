@@ -32,6 +32,16 @@ public record ChessPiece(ChessGame.TeamColor pieceColor, PieceType type) {
         public Collection<ChessMove> getMoves(AbstractChessBoard board, ChessPosition position, ChessGame.TeamColor color) {
             return MOVE_CALCULATOR.getMoves(board, position, color);
         }
+
+        @Override
+        public Collection<ChessMove> captureMoves(AbstractChessBoard board, ChessPosition myPosition, ChessGame.TeamColor color) {
+            return MOVE_CALCULATOR.captureMoves(board, myPosition, color);
+        }
+
+        @Override
+        public boolean validateMove(AbstractChessBoard board, ChessGame.TeamColor color, ChessMove move) {
+            return MOVE_CALCULATOR.validateMove(board, color, move);
+        }
     }
 
     /**
@@ -57,9 +67,5 @@ public record ChessPiece(ChessGame.TeamColor pieceColor, PieceType type) {
      */
     public Collection<ChessMove> pieceMoves(AbstractChessBoard board, ChessPosition myPosition) {
         return type.getMoves(board, myPosition, pieceColor);
-    }
-
-    public MoveCalculator getMoveCalculator() {
-        return type.MOVE_CALCULATOR;
     }
 }

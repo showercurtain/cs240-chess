@@ -140,7 +140,7 @@ public class ChessGame {
         if (!piece.getTeamColor().equals(teamTurn)) {
             throw new InvalidMoveException("Cannot move your opponent's pieces");
         }
-        if (!piece.type().MOVES_SINGLETON.validateMove(board, piece.pieceColor(), move)) {
+        if (!piece.type().validateMove(board, piece.pieceColor(), move)) {
             throw new InvalidMoveException("That piece cannot move like that");
         }
         ChessPiece destinationPiece = board.getPiece(move.endPosition());

@@ -86,7 +86,7 @@ public abstract class AbstractChessBoard {
     public ChessPosition findKing(ChessGame.TeamColor color) {
         ChessPiece king = color == ChessGame.TeamColor.WHITE ? W_KING : B_KING;
         for (Map.Entry<ChessPosition, ChessPiece> entry : getPieces().entrySet()) {
-            if (entry.getValue() == king) return entry.getKey();
+            if (entry.getValue().equals(king)) return entry.getKey();
         }
         throw new RuntimeException("Invalid state: No king found");
     }
