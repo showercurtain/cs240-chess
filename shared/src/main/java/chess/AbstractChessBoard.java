@@ -24,11 +24,12 @@ public abstract class AbstractChessBoard {
     public static final ChessPiece B_QUEEN = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.QUEEN);
 
     ChessPosition enPassant; // Stores the location that a pawn skips over on a move
+    ChessPosition lastMove;
     EnumSet<CastleState> castleStates; // Stores which castle moves are still possible
 
     public AbstractChessBoard() {
         enPassant = null;
-        castleStates = EnumSet.noneOf(CastleState.class);
+        castleStates = EnumSet.allOf(CastleState.class);
     }
 
     public ChessPosition getEnPassant() {
@@ -36,45 +37,29 @@ public abstract class AbstractChessBoard {
     }
 
     public EnumSet<CastleState> getCastleStates() {
+        if (W_KING.equals(getPiece(new ChessPosition(1,5)))) {
+            if (!W_ROOK.equals(getPiece(new ChessPosition(1,8)))) {
+                castleStates.remove(CastleState.W_KING);
+            }
+            if (!W_ROOK.equals(getPiece(new ChessPosition(1,1)))) {
+                castleStates.remove(CastleState.W_QUEEN);
+            }
+        } else {
+            castleStates.remove(CastleState.W_KING);
+            castleStates.remove(CastleState.W_QUEEN);
+        }
+        if (B_KING.equals(getPiece(new ChessPosition(8,5)))) {
+            if (!B_ROOK.equals(getPiece(new ChessPosition(8,8)))) {
+                castleStates.remove(CastleState.B_KING);
+            }
+            if (!B_ROOK.equals(getPiece(new ChessPosition(8,1)))) {
+                castleStates.remove(CastleState.B_QUEEN);
+            }
+        } else {
+            castleStates.remove(CastleState.B_KING);
+            castleStates.remove(CastleState.B_QUEEN);
+        }
         return castleStates;
-    }
-
-    public boolean mightCastle(CastleState move) {
-        return castleStates.contains(move);
-    }
-
-    public void setEnPassant(ChessPosition enPassant) {
-        this.enPassant = enPassant;
-    }
-
-    public void clearCastleState(CastleState state) {
-        castleStates.remove(state);
-    }
-
-    /**
-     * Checks whether a piece of a specified color can capture a piece at a location.
-     * Note that this function doesn't check whether the move is valid for that piece, only
-     * that it is a valid location for a piece to capture.
-     * @param position The position to check
-     * @param color The color of the moving piece
-     * @return Whether there is a piece at that location that can be captured
-     */
-    public boolean checkCapture(ChessPosition position, ChessGame.TeamColor color) {
-        ChessPiece piece = getPiece(position);
-        return piece != null && piece.getTeamColor() != color;
-    }
-
-    /**
-     * Checks whether a piece can move to a location, including capturing another piece
-     * Note that this function doesn't check whether the move is valid for that piece, only
-     * that it is a valid location for a piece to move to.
-     * @param position The position to check
-     * @param color The color of the moving piece
-     * @return True if the piece can move to that location
-     */
-    public boolean checkMove(ChessPosition position, ChessGame.TeamColor color) {
-        ChessPiece piece = getPiece(position);
-        return piece == null || piece.getTeamColor() != color;
     }
 
     /**
@@ -126,6 +111,9 @@ public abstract class AbstractChessBoard {
 
         addPiece(new ChessPosition(1, 5), W_KING);
         addPiece(new ChessPosition(8, 5), B_KING);
+
+        castleStates = EnumSet.allOf(CastleState.class);
+        enPassant = null;
     }
 
     @Override
@@ -194,8 +182,28 @@ public abstract class AbstractChessBoard {
     public abstract ChessPiece getPiece(ChessPosition position);
 
     public void movePiece(ChessMove move) {
-        addPiece(move.endPosition(), getPiece(move.startPosition()));
+        ChessPiece piece = getPiece(move.startPosition());
+        if (move.promotionPiece() == null ){
+            addPiece(move.endPosition(), piece);
+        } else {
+            addPiece(move.endPosition(), new ChessPiece(piece.pieceColor(), move.promotionPiece()));
+        }
         addPiece(move.startPosition(), null);
+
+        if (move.endPosition().equals(enPassant)) {
+            addPiece(lastMove, null);
+        }
+
+        enPassant = null;
+        lastMove = move.endPosition();
+
+        if (piece.type().equals(ChessPiece.PieceType.PAWN) &&
+                Math.abs(move.startPosition().row() - move.endPosition().row()) == 2
+        ) {
+            enPassant = new ChessPosition(
+                    (move.startPosition().row()+move.endPosition().row())/2,
+                    move.startPosition().col());
+        }
     }
 
     /**

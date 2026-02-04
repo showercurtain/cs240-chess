@@ -1,8 +1,6 @@
 package chess;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * For a class that can manage a chess game, making moves on a board
@@ -11,21 +9,12 @@ import java.util.Objects;
  * signature of the existing methods.
  */
 public class ChessGame {
-    public enum CastleState {
-        B_KING, // Black castle on king's side O-O
-        B_QUEEN, // Black castle on queen's side O-O-O
-        W_KING, // White castle on king's side O-O
-        W_QUEEN, // White castle on queen's side O-O-O
-    }
-
     TeamColor teamTurn;
     ChessBoard board;
 
     // These are for redundancy, to avoid looking for kings every move
     ChessPosition blackKing;
     ChessPosition whiteKing;
-
-
 
     public ChessGame() {
         teamTurn = TeamColor.WHITE;
@@ -59,6 +48,63 @@ public class ChessGame {
         BLACK
     }
 
+    private Collection<ChessMove> castleMoves(TeamColor team) {
+
+        EnumSet<AbstractChessBoard.CastleState> state = board.getCastleStates();
+
+        boolean castleQueenside =
+                (team == TeamColor.WHITE && state.contains(AbstractChessBoard.CastleState.W_QUEEN)) ||
+                (team == TeamColor.BLACK && state.contains(AbstractChessBoard.CastleState.B_QUEEN));
+
+        boolean castleKingside =
+                (team == TeamColor.WHITE && state.contains(AbstractChessBoard.CastleState.W_KING)) ||
+                (team == TeamColor.BLACK && state.contains(AbstractChessBoard.CastleState.B_KING));
+
+        if (!(castleKingside || castleQueenside)) return List.of();
+
+        int startRow;
+        if (team == TeamColor.WHITE) startRow = 1;
+        else startRow = 8;
+
+        ChessPosition startPosition = new ChessPosition(startRow, 5);
+
+        if (board.isInDanger(startPosition)) return List.of();
+
+        ChessPosition left1 = startPosition.withOffset(new ChessPosition.Offset(0,-1));
+        ChessPosition left2 = startPosition.withOffset(new ChessPosition.Offset(0,-2));
+        ChessPosition right1 = startPosition.withOffset(new ChessPosition.Offset(0,1));
+        ChessPosition right2 = startPosition.withOffset(new ChessPosition.Offset(0,2));
+
+        ArrayList<ChessMove> out = new ArrayList<>(2);
+
+        OverlayChessBoard overlay = new OverlayChessBoard(board);
+        if (castleKingside && board.getPiece(right1) == null && board.getPiece(right2) == null) {
+            overlay.movePiece(new ChessMove(startPosition, right1, null));
+            if (!overlay.isInDanger(right1)) {
+                overlay.resetOverlay();
+                overlay.movePiece(new ChessMove(startPosition, right2, null));
+                if (!overlay.isInDanger(right2)) {
+                    out.add(new ChessMove(startPosition, right2, null));
+                }
+            }
+            overlay.resetOverlay();
+        }
+
+        if (castleQueenside && board.getPiece(left1) == null && board.getPiece(left2) == null) {
+            overlay.movePiece(new ChessMove(startPosition, left1, null));
+            if (!overlay.isInDanger(left1)) {
+                overlay.resetOverlay();
+                overlay.movePiece(new ChessMove(startPosition, left2, null));
+                if (!overlay.isInDanger(left2)) {
+                    out.add(new ChessMove(startPosition, left2, null));
+                }
+            }
+            overlay.resetOverlay();
+        }
+
+        return out;
+    }
+
     /**
      * Gets a valid moves for a piece at the given location
      *
@@ -79,6 +125,7 @@ public class ChessGame {
                     valid.add(move);
                 }
             }
+            valid.addAll(castleMoves(piece.getTeamColor()));
         } else {
             ChessPosition kingPosition = piece.getTeamColor() == TeamColor.BLACK ? blackKing : whiteKing;
 
@@ -109,23 +156,6 @@ public class ChessGame {
         return true;
     }
 
-    public ArrayList<ChessMove> allValidMoves(TeamColor teamColor) {
-        ArrayList<ChessMove> out = new ArrayList<>();
-
-        OverlayChessBoard overlay = new OverlayChessBoard(board);
-        ChessPosition kingPosition = teamColor == TeamColor.BLACK ? blackKing : whiteKing;
-
-        for (ChessMove move : board.getAllMoves(teamColor)) {
-            overlay.resetOverlay();
-            overlay.movePiece(move);
-            if (!overlay.isInDanger(move.startPosition().equals(kingPosition) ? move.endPosition() : kingPosition)) {
-                out.add(move);
-            }
-        }
-
-        return out;
-    }
-
     /**
      * Makes a move in a chess game
      *
@@ -137,10 +167,14 @@ public class ChessGame {
         if (piece == null) {
             throw new InvalidMoveException("There is no piece to move there");
         }
+
+        boolean castle = piece.getPieceType().equals(ChessPiece.PieceType.KING) &&
+                castleMoves(piece.getTeamColor()).contains(move);
+
         if (!piece.getTeamColor().equals(teamTurn)) {
             throw new InvalidMoveException("Cannot move your opponent's pieces");
         }
-        if (!piece.type().validateMove(board, piece.pieceColor(), move)) {
+        if (!piece.type().validateMove(board, piece.pieceColor(), move) && !castle) {
             throw new InvalidMoveException("That piece cannot move like that");
         }
         ChessPiece destinationPiece = board.getPiece(move.endPosition());
@@ -160,6 +194,21 @@ public class ChessGame {
             throw new InvalidMoveException("That piece cannot be promoted");
         }
         board.movePiece(move);
+        if (castle) {
+            int row = move.startPosition().row();
+            int col1;
+            int col2;
+            if (move.startPosition().col() < move.endPosition().col()) {
+                col1 = 8;
+                col2 = 6;
+            } else {
+                col1 = 1;
+                col2 = 4;
+            }
+            board.movePiece(new ChessMove(
+                    new ChessPosition(row, col1),
+                    new ChessPosition(row, col2), null));
+        }
         teamTurn = teamTurn.equals(TeamColor.BLACK) ? TeamColor.WHITE : TeamColor.BLACK;
     }
 

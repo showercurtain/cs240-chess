@@ -21,6 +21,13 @@ public class PawnMoveCalculator implements MoveCalculator {
         };
         ArrayList<ChessPosition> endPositions = new ArrayList<>(4);
 
+        ChessPosition ep = (position.row() == 4 || position.row() == 5) ? board.getEnPassant() : null;
+        if (ep != null) {
+            board.addPiece(ep, new ChessPiece(
+                    color == ChessGame.TeamColor.WHITE ? ChessGame.TeamColor.BLACK : ChessGame.TeamColor.WHITE,
+                    ChessPiece.PieceType.DUMMY));
+        }
+
         ChessPosition move = position.withOffset(direction);
         if (move.onBoard() && board.getPiece(move) == null) {
             endPositions.add(move);
@@ -57,6 +64,10 @@ public class PawnMoveCalculator implements MoveCalculator {
             } else {
                 moves.add(new ChessMove(position, end, null));
             }
+        }
+
+        if (ep != null) {
+            board.addPiece(ep, null);
         }
 
         return moves;

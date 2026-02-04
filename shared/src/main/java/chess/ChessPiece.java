@@ -20,7 +20,8 @@ public record ChessPiece(ChessGame.TeamColor pieceColor, PieceType type) {
         BISHOP(new BishopMoveCalculator()),
         KNIGHT(new KnightMoveCalculator()),
         ROOK(new RookMoveCalculator()),
-        PAWN(new PawnMoveCalculator());
+        PAWN(new PawnMoveCalculator()),
+        DUMMY(new DummyMoveCalculator());
 
         PieceType(MoveCalculator moves) {
             this.MOVE_CALCULATOR = moves;

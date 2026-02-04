@@ -1,6 +1,6 @@
 package chess.moves;
 
-import chess.ChessPosition;
+import chess.*;
 
 public class KingMoveCalculator implements SetMoveCalculator {
     private static final ChessPosition.Offset[] MOVES = {

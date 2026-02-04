@@ -14,6 +14,8 @@ public class OverlayChessBoard extends AbstractChessBoard {
     public OverlayChessBoard(AbstractChessBoard base) {
         super();
         this.base = base;
+        this.enPassant = base.getEnPassant();
+        this.castleStates = base.getCastleStates().clone();
         changes = new HashMap<>();
     }
 
