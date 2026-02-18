@@ -24,6 +24,14 @@ public class ChessGame {
         whiteKing = board.findKing(TeamColor.WHITE);
     }
 
+    public ChessGame(ChessBoard board, TeamColor turn) {
+        teamTurn = turn;
+        this.board = board;
+
+        blackKing = board.findKing(TeamColor.BLACK);
+        whiteKing = board.findKing(TeamColor.WHITE);
+    }
+
     /**
      * @return Which team's turn it is
      */

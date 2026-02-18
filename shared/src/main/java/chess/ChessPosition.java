@@ -48,4 +48,16 @@ public record ChessPosition(int row, int col) {
     public ChessPosition withOffset(Offset offset) {
         return new ChessPosition(row + offset.row_offset(), col + offset.col_offset());
     }
+
+    @Override
+    public String toString() {
+        return String.format("%c%d","abcdefgh".charAt(col()-1), row());
+    }
+
+    public static ChessPosition fromString(String string) {
+        int col = string.charAt(0) - 96;
+        int row = string.charAt(1) - 48;
+
+        return new ChessPosition(row, col);
+    }
 }

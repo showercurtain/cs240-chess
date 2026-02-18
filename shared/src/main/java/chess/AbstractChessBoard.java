@@ -62,6 +62,14 @@ public abstract class AbstractChessBoard {
         return castleStates;
     }
 
+    public void setEnPassant(ChessPosition enPassant) {
+        this.enPassant = enPassant;
+    }
+
+    public void setCastleStates(EnumSet<CastleState> states) {
+        castleStates = states;
+    }
+
     /**
      * Searches for the king of a specific color on the board
      * @param color The color of the king to be searched for
@@ -212,6 +220,13 @@ public abstract class AbstractChessBoard {
     public abstract void clearBoard();
 
     public abstract Map<ChessPosition, ChessPiece> getPieces();
+
+    public void setAllPieces(Map<ChessPosition, ChessPiece> pieces) {
+        clearBoard();
+        for (Map.Entry<ChessPosition, ChessPiece> entry : pieces.entrySet()) {
+            addPiece(entry.getKey(), entry.getValue());
+        }
+    }
 
     public boolean isInDanger(ChessPosition position) {
         ChessGame.TeamColor team = getPiece(position).getTeamColor();

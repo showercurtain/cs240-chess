@@ -69,4 +69,37 @@ public record ChessPiece(ChessGame.TeamColor pieceColor, PieceType type) {
     public Collection<ChessMove> pieceMoves(AbstractChessBoard board, ChessPosition myPosition) {
         return type.getMoves(board, myPosition, pieceColor);
     }
+
+    @Override
+    public String toString() {
+        String out = switch (type) {
+            case KING -> "k";
+            case QUEEN -> "q";
+            case BISHOP -> "b";
+            case KNIGHT -> "n";
+            case ROOK -> "r";
+            case PAWN -> "p";
+            case DUMMY -> "o";
+        };
+
+        if (pieceColor == ChessGame.TeamColor.WHITE) out = out.toUpperCase();
+
+        return out;
+    }
+
+    public static ChessPiece fromString(String string) {
+        PieceType type = switch (string.toLowerCase()) {
+            case ("k") -> PieceType.KING;
+            case ("q") -> PieceType.QUEEN;
+            case ("b") -> PieceType.BISHOP;
+            case ("n") -> PieceType.KNIGHT;
+            case ("r") -> PieceType.ROOK;
+            case ("p") -> PieceType.PAWN;
+            default -> PieceType.DUMMY;
+        };
+
+        ChessGame.TeamColor team = string.charAt(0) < 91 ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK;
+
+        return new ChessPiece(team, type);
+    }
 }
