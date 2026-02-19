@@ -19,4 +19,7 @@ public record GameData(
         String gameName,
         ChessGame game
 ) {
+    public GameData copy() {
+        return new GameData(gameID, whiteUsername, blackUsername, gameName, new ChessGame(game));
+    }
 }

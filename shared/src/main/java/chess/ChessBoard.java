@@ -18,6 +18,12 @@ public class ChessBoard extends AbstractChessBoard {
         pieces = new ChessPiece[64];
     }
 
+    public ChessBoard(ChessBoard from) {
+        pieces = from.pieces.clone();
+        enPassant = from.enPassant;
+        castleStates = from.castleStates.clone();
+    }
+
     private static int indexOf(ChessPosition position) {
         return (position.row()-1) * 8 + (position.col()-1);
     }
