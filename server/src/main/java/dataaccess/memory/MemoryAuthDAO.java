@@ -2,6 +2,7 @@ package dataaccess.memory;
 
 import dataaccess.AuthDAO;
 import dataaccess.DataAccessException;
+import dataaccess.DataNotFound;
 import model.AuthData;
 
 import java.util.HashMap;
@@ -16,11 +17,14 @@ public class MemoryAuthDAO implements AuthDAO {
 
     @Override
     public AuthData getAuth(String authToken) throws DataAccessException {
-        return data.get(authToken);
+        AuthData out = data.get(authToken);
+        if (out == null) throw new DataNotFound("Auth", authToken);
+        return out;
     }
 
     @Override
     public void deleteAuth(String authToken) throws DataAccessException {
+        if (!data.containsKey(authToken)) throw new DataNotFound("Auth", authToken);
         data.remove(authToken);
     }
 }

@@ -1,7 +1,9 @@
 package dataaccess.memory;
 
 import dataaccess.DataAccessException;
+import dataaccess.DataNotFound;
 import dataaccess.UserDAO;
+import model.AuthData;
 import model.UserData;
 
 import java.util.HashMap;
@@ -20,11 +22,14 @@ public class MemoryUserDAO implements UserDAO {
 
     @Override
     public UserData getUser(String username) throws DataAccessException {
-        return data.get(username);
+        UserData out = data.get(username);
+        if (out == null) throw new DataNotFound("User", username);
+        return out;
     }
 
     @Override
     public void deleteUser(String username) throws DataAccessException {
+        if (!data.containsKey(username)) throw new DataNotFound("User", username);
         data.remove(username);
     }
 }
