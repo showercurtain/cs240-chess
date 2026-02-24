@@ -9,6 +9,7 @@ import dataaccess.memory.MemoryGameDao;
 import dataaccess.memory.MemoryUserDAO;
 import io.javalin.*;
 import model.GsonUtil;
+import service.GameService;
 import service.UserService;
 
 public class Server {
@@ -24,6 +25,7 @@ public class Server {
         GameDAO gameDAO = new MemoryGameDao();
 
         UserService userService = new UserService(authDAO, userDAO);
+        GameService gameService = new GameService(gameDAO);
 
         javalin.post("/user",
                 new GenericHandler<>(
@@ -50,6 +52,15 @@ public class Server {
                         Void.class,
                         Void.class,
                         (GenericHandler.LogoutServiceEndpoint) userService::logout
+                ));
+
+        javalin.get("/game",
+                new GenericHandler<>(
+                        gson,
+                        authDAO,
+                        Void.class,
+                        GameService.ListResponse.class,
+                        (GenericHandler.EmptyAuthServiceEndpoint<GameService.ListResponse>) gameService::listGames
                 ));
     }
 

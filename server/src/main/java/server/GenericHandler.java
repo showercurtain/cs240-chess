@@ -41,11 +41,11 @@ public class GenericHandler<Rq, Rs> implements Handler {
     public interface AuthVoidServiceEndpoint<Rq> extends EndpointHandler<Rq, Void> {
         @Override
         default Void run(AuthData auth, Rq request) throws ServiceException {
-            runn(auth, request);
+            exec(auth, request);
             return null;
         }
 
-        void runn(AuthData auth, Rq request) throws ServiceException;
+        void exec(AuthData auth, Rq request) throws ServiceException;
     }
 
     @FunctionalInterface
