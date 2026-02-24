@@ -1,7 +1,6 @@
 package service;
 
 import dataaccess.AuthDAO;
-import dataaccess.DataAccessException;
 import dataaccess.UserDAO;
 import model.AuthData;
 import model.UserData;
@@ -40,9 +39,14 @@ public class UserService {
 
         if (!user.password().equals(request.password())) throw ServiceException.UNAUTHORIZED;
 
+        authDAO.logoutUsername(request.username());
         String auth = UUID.randomUUID().toString();
         authDAO.createAuth(new AuthData(auth, request.username()));
 
         return new LoginResult(request.username(), auth);
+    }
+
+    public void logout(AuthData authToken) throws ServiceException {
+        authDAO.deleteAuth(authToken.authToken());
     }
 }
