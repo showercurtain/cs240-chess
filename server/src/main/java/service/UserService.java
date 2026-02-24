@@ -39,7 +39,6 @@ public class UserService {
 
         if (!user.password().equals(request.password())) throw ServiceException.UNAUTHORIZED;
 
-        authDAO.logoutUsername(request.username());
         String auth = UUID.randomUUID().toString();
         authDAO.createAuth(new AuthData(auth, request.username()));
 

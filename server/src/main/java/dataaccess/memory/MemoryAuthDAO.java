@@ -5,7 +5,6 @@ import model.AuthData;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
-import java.util.Optional;
 
 public class MemoryAuthDAO implements AuthDAO {
     final HashMap<String, AuthData> data;
@@ -29,17 +28,6 @@ public class MemoryAuthDAO implements AuthDAO {
         synchronized (data) {
             if (!data.containsKey(authToken)) return;
             data.remove(authToken);
-        }
-    }
-
-    @Override
-    public void logoutUsername(String username) {
-        synchronized (data) {
-            Optional<AuthData> data = this.data.values().stream()
-                    .filter(auth -> auth.username().equals(username))
-                    .findFirst();
-
-            data.ifPresent(auth -> this.data.remove(auth.authToken()));
         }
     }
 

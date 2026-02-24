@@ -1,6 +1,7 @@
 package server;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonParseException;
 import dataaccess.AuthDAO;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
@@ -112,20 +113,27 @@ public class GenericHandler<Rq, Rs> implements Handler {
         context.contentType("application/json");
         try {
             AuthData auth = null;
-            context.contentType("application/json");
+            Rq request = null;
+            if (requestType != Void.class) {
+                request = gson.fromJson(context.body(), requestType);
+                if (request == null) {
+                    throw new ServiceException("Bad Request").withError(400);
+                }
+            }
             if (authenticated) {
                 String authToken = context.header("authorization");
                 if (authToken == null) throw ServiceException.UNAUTHORIZED;
                 auth = authDAO.getAuth(authToken);
                 if (auth == null) throw ServiceException.UNAUTHORIZED;
             }
-            Rq request = null;
-            if (requestType != Void.class) request = gson.fromJson(context.body(), requestType);
             Rs response = handler.run(auth, request);
             if (responseType != Void.class) context.result(gson.toJson(response, responseType));
         } catch (ServiceException e) {
             context.status(e.getHttpError());
-            context.result(gson.toJson(Map.of("message", e.getMessage())));
+            context.result(gson.toJson(Map.of("message", "Error: " + e.getMessage())));
+        } catch (JsonParseException e) {
+            context.status(400);
+            context.result(gson.toJson(Map.of("message", "Error: Bad Request")));
         }
     }
 }

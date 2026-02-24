@@ -15,7 +15,7 @@ public class MemoryGameDao implements GameDAO {
 
     public MemoryGameDao() {
         data = new HashMap<>();
-        currentID = new AtomicInteger(0);
+        currentID = new AtomicInteger(1);
     }
 
     @Override

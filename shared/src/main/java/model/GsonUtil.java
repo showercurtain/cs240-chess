@@ -6,10 +6,7 @@ import chess.ChessPiece;
 import chess.ChessPosition;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import model.codecs.ChessBoardCodec;
-import model.codecs.ChessGameCodec;
-import model.codecs.ChessPieceCodec;
-import model.codecs.ChessPositionCodec;
+import model.codecs.*;
 
 public class GsonUtil {
     public static Gson buildGson() {
@@ -18,6 +15,7 @@ public class GsonUtil {
                 .registerTypeAdapter(ChessGame.class, new ChessGameCodec())
                 .registerTypeAdapter(ChessPiece.class, new ChessPieceCodec())
                 .registerTypeAdapter(ChessPosition.class, new ChessPositionCodec())
+                .registerTypeAdapterFactory(new NullCheckTypeAdapterFactory())
                 .create();
     }
 }

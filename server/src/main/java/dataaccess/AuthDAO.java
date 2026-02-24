@@ -8,6 +8,5 @@ public interface AuthDAO {
     @Nullable
     AuthData getAuth(String authToken) throws DataAccessException;
     void deleteAuth(String authToken) throws DataAccessException;
-    void logoutUsername(String username) throws DataAccessException;
     void clear() throws DataAccessException;
 }
