@@ -42,4 +42,11 @@ public class MemoryAuthDAO implements AuthDAO {
             data.ifPresent(auth -> this.data.remove(auth.authToken()));
         }
     }
+
+    @Override
+    public void clear() {
+        synchronized (data) {
+            data.clear();
+        }
+    }
 }

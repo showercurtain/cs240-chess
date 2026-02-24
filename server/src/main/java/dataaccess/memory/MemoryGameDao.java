@@ -42,12 +42,14 @@ public class MemoryGameDao implements GameDAO {
     }
 
     @Override
-    public void deleteGame(int identifier) {
-        synchronized (data) { data.remove(identifier); }
+    public int nextID() {
+        return currentID.getAndIncrement();
     }
 
     @Override
-    public int nextID() throws DataAccessException {
-        return currentID.getAndIncrement();
+    public void clear() {
+        synchronized (data) {
+            data.clear();
+        }
     }
 }

@@ -67,6 +67,16 @@ public class GenericHandler<Rq, Rs> implements Handler {
         void run(AuthData auth) throws ServiceException;
     }
 
+    @FunctionalInterface
+    public interface BlankEndpoint extends EndpointHandler<Void, Void> {
+        @Override
+        default Void run(AuthData auth, Void request) throws ServiceException {
+            run();
+            return null;
+        }
+        void run() throws ServiceException;
+    }
+
     Class<Rq> requestType;
     Class<Rs> responseType;
     boolean authenticated;

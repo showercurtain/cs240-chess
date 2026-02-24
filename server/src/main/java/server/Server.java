@@ -10,6 +10,7 @@ import dataaccess.memory.MemoryUserDAO;
 import io.javalin.*;
 import model.GsonUtil;
 import service.GameService;
+import service.MiscService;
 import service.UserService;
 
 public class Server {
@@ -26,6 +27,7 @@ public class Server {
 
         UserService userService = new UserService(authDAO, userDAO);
         GameService gameService = new GameService(gameDAO);
+        MiscService miscService = new MiscService(authDAO, gameDAO, userDAO);
 
         javalin.post("/user",
                 new GenericHandler<>(
@@ -88,6 +90,16 @@ public class Server {
                         Void.class,
                         (GenericHandler.AuthVoidServiceEndpoint<GameService.JoinRequest>) gameService::joinGame,
                         true
+                ));
+
+        javalin.delete("/db",
+                new GenericHandler<>(
+                        gson,
+                        authDAO,
+                        Void.class,
+                        Void.class,
+                        (GenericHandler.BlankEndpoint) miscService::clearDatabase,
+                        false
                 ));
     }
 

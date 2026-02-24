@@ -1,6 +1,5 @@
 package dataaccess.memory;
 
-import dataaccess.DataAccessException;
 import dataaccess.UserDAO;
 import model.UserData;
 import org.jetbrains.annotations.Nullable;
@@ -25,7 +24,9 @@ public class MemoryUserDAO implements UserDAO {
     }
 
     @Override
-    public void deleteUser(String username) {
-        synchronized (data) { data.remove(username); }
+    public void clear() {
+        synchronized (data) {
+            data.clear();
+        }
     }
 }
