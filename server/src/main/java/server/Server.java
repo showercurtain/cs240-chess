@@ -79,6 +79,16 @@ public class Server {
                                 gameService::createGame,
                         true
                 ));
+
+        javalin.put("/game",
+                new GenericHandler<>(
+                        gson,
+                        authDAO,
+                        GameService.JoinRequest.class,
+                        Void.class,
+                        (GenericHandler.AuthVoidServiceEndpoint<GameService.JoinRequest>) gameService::joinGame,
+                        true
+                ));
     }
 
     public int run(int desiredPort) {
