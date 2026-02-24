@@ -14,23 +14,16 @@ import service.UserService;
 public class Server {
 
     private final Javalin javalin;
-    private final Gson gson;
-
-    private final AuthDAO authDAO;
-    private final UserDAO userDAO;
-    private final GameDAO gameDAO;
-
-    private final UserService userService;
 
     public Server() {
         javalin = Javalin.create(config -> config.staticFiles.add("web"));
-        gson = GsonUtil.buildGson();
+        Gson gson = GsonUtil.buildGson();
 
-        authDAO = new MemoryAuthDAO();
-        userDAO = new MemoryUserDAO();
-        gameDAO = new MemoryGameDao();
+        AuthDAO authDAO = new MemoryAuthDAO();
+        UserDAO userDAO = new MemoryUserDAO();
+        GameDAO gameDAO = new MemoryGameDao();
 
-        userService = new UserService(authDAO, userDAO);
+        UserService userService = new UserService(authDAO, userDAO);
 
         javalin.post("/user",
                 new GenericHandler<>(

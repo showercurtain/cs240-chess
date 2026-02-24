@@ -16,15 +16,6 @@ public class GenericHandler<Rq, Rs> implements Handler {
     }
 
     @FunctionalInterface
-    public interface ServiceEndpoint<Rq, Rs> extends EndpointHandler<Rq, Rs> {
-        @Override
-        default Rs run(AuthData auth, Rq request) throws ServiceException {
-            return run(request);
-        }
-        Rs run(Rq request) throws ServiceException;
-    }
-
-    @FunctionalInterface
     public interface PublicServiceEndpoint<Rq, Rs> extends EndpointHandler<Rq, Rs> {
         @Override
         default Rs run(AuthData authData, Rq request) throws ServiceException {
