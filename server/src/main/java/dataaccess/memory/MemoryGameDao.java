@@ -1,9 +1,9 @@
 package dataaccess.memory;
 
 import dataaccess.DataAccessException;
-import dataaccess.DataNotFound;
 import dataaccess.GameDAO;
 import model.GameData;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -16,31 +16,28 @@ public class MemoryGameDao implements GameDAO {
     }
 
     @Override
-    public void createGame(GameData game) throws DataAccessException {
+    public void createGame(GameData game) {
         data.put(game.gameID(), game);
     }
 
     @Override
-    public GameData getGame(int identifier) throws DataAccessException {
-        GameData out = data.get(identifier);
-        if (out == null) throw new DataNotFound("Game", identifier);
-        return out.copy();
+    public @Nullable GameData getGame(int identifier) {
+        return data.get(identifier);
     }
 
     @Override
-    public Collection<GameData> listGames() throws DataAccessException {
+    public Collection<GameData> listGames() {
         return data.values().stream().map(GameData::copy).toList();
     }
 
     @Override
     public void updateGame(GameData game) throws DataAccessException {
-        if (!data.containsKey(game.gameID())) throw new DataNotFound("Game", game.gameID());
+        if (!data.containsKey(game.gameID())) throw new DataAccessException("Game " + game.gameID() + " not found");
         data.put(game.gameID(), game.copy());
     }
 
     @Override
-    public void deleteGame(int identifier) throws DataAccessException {
-        if (!data.containsKey(identifier)) throw new DataNotFound("Game", identifier);
+    public void deleteGame(int identifier) {
         data.remove(identifier);
     }
 }

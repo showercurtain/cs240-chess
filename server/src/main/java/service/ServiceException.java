@@ -1,6 +1,8 @@
 package service;
 
 public class ServiceException extends Exception {
+    public static final ServiceException UNAUTHORIZED = new ServiceException("unauthorized").withError(403);
+
     int http_error;
 
     public ServiceException(String message) {

@@ -2,7 +2,6 @@ package service;
 
 import dataaccess.AuthDAO;
 import dataaccess.DataAccessException;
-import dataaccess.DataNotFound;
 import dataaccess.UserDAO;
 import model.AuthData;
 import model.UserData;
@@ -15,32 +14,35 @@ public class UserService {
     public record LoginRequest(String username, String password) {}
     public record LoginResult(String username, String authToken) {}
 
-    private AuthDAO authDAO;
-    private UserDAO userDAO;
+    private final AuthDAO authDAO;
+    private final UserDAO userDAO;
+
+    public UserService(AuthDAO authDAO, UserDAO userDAO) {
+        this.authDAO = authDAO;
+        this.userDAO = userDAO;
+    }
 
     public RegisterResult register(RegisterRequest request) throws ServiceException {
-        try {
-            userDAO.getUser(request.username());
-        } catch (DataNotFound e) {
-            throw new ServiceException("Error: username already taken").withError(403);
-        } catch (DataAccessException e) {
-            throw e.toServiceException();
+        if (userDAO.getUser(request.username()) != null) {
+            throw new ServiceException("username already taken").withError(403);
         }
 
-        try {
-            userDAO.createUser(new UserData(request.username(), request.password(), request.email()));
-        } catch (DataAccessException e) {
-            throw e.toServiceException();
-        }
+        userDAO.createUser(new UserData(request.username(), request.password(), request.email()));
+        String auth = UUID.randomUUID().toString();
+        authDAO.createAuth(new AuthData(auth, request.username()));
 
-        UUID auth = UUID.randomUUID();
+        return new RegisterResult(request.username(), auth);
+    }
 
-        try {
-            authDAO.createAuth(new AuthData(auth.toString(), request.username()));
-        } catch (DataAccessException e) {
-            throw e.toServiceException();
-        }
+    public LoginResult login(LoginRequest request) throws ServiceException {
+        UserData user = userDAO.getUser(request.username());
+        if (user == null) throw ServiceException.UNAUTHORIZED;
 
-        return new RegisterResult(request.username(), auth.toString());
+        if (!user.password().equals(request.password())) throw ServiceException.UNAUTHORIZED;
+
+        String auth = UUID.randomUUID().toString();
+        authDAO.createAuth(new AuthData(auth, request.username()));
+
+        return new LoginResult(request.username(), auth);
     }
 }

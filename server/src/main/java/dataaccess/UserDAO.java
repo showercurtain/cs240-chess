@@ -1,9 +1,11 @@
 package dataaccess;
 
 import model.UserData;
+import org.jetbrains.annotations.Nullable;
 
 public interface UserDAO {
     void createUser(UserData user) throws DataAccessException;
+    @Nullable
     UserData getUser(String username) throws DataAccessException;
     void deleteUser(String username) throws DataAccessException;
 }
