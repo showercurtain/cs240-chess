@@ -8,7 +8,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.HashMap;
 
 public class MemoryUserDAO implements UserDAO {
-    HashMap<String, UserData> data;
+    final HashMap<String, UserData> data;
 
     public MemoryUserDAO() {
         data = new HashMap<>();
@@ -16,16 +16,16 @@ public class MemoryUserDAO implements UserDAO {
 
     @Override
     public void createUser(UserData user) {
-        data.put(user.username(), user);
+        synchronized (data) { data.put(user.username(), user); }
     }
 
     @Override
     public @Nullable UserData getUser(String username) {
-        return data.get(username);
+        synchronized (data) { return data.get(username); }
     }
 
     @Override
     public void deleteUser(String username) {
-        data.remove(username);
+        synchronized (data) { data.remove(username); }
     }
 }
