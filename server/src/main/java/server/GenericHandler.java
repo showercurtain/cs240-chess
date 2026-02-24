@@ -38,6 +38,15 @@ public class GenericHandler<Rq, Rs> implements Handler {
     }
 
     @FunctionalInterface
+    public interface EmptyServiceEndpoint<Rs> extends EndpointHandler<Void, Rs> {
+        @Override
+        default Rs run(AuthData auth, Void request) throws ServiceException {
+            return run();
+        }
+        Rs run() throws ServiceException;
+    }
+
+    @FunctionalInterface
     public interface AuthVoidServiceEndpoint<Rq> extends EndpointHandler<Rq, Void> {
         @Override
         default Void run(AuthData auth, Rq request) throws ServiceException {
@@ -72,7 +81,8 @@ public class GenericHandler<Rq, Rs> implements Handler {
             AuthDAO authDAO,
             Class<Rq> requestType,
             Class<Rs> responseType,
-            EndpointHandler<Rq, Rs> handler
+            EndpointHandler<Rq, Rs> handler,
+            boolean authenticated
     ) {
         this.gson = gson;
         this.authDAO = authDAO;
@@ -80,11 +90,11 @@ public class GenericHandler<Rq, Rs> implements Handler {
         this.responseType = responseType;
         this.handler = handler;
 
-        authenticated =
+        this.authenticated =
                 (handler instanceof GenericHandler.AuthServiceEndpoint) ||
                 (handler instanceof GenericHandler.AuthVoidServiceEndpoint) ||
                 (handler instanceof GenericHandler.EmptyAuthServiceEndpoint) ||
-                (handler instanceof LogoutServiceEndpoint);
+                (handler instanceof LogoutServiceEndpoint) || authenticated;
     }
 
     @Override

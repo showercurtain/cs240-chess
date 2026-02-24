@@ -34,7 +34,9 @@ public class Server {
                         UserService.RegisterRequest.class,
                         UserService.RegisterResult.class,
                         (GenericHandler.PublicServiceEndpoint<UserService.RegisterRequest, UserService.RegisterResult>)
-                                userService::register));
+                                userService::register,
+                        false
+                ));
 
         javalin.post("/session",
                 new GenericHandler<>(
@@ -43,7 +45,9 @@ public class Server {
                         UserService.LoginRequest.class,
                         UserService.LoginResult.class,
                         (GenericHandler.PublicServiceEndpoint<UserService.LoginRequest, UserService.LoginResult>)
-                                userService::login));
+                                userService::login,
+                        false
+                ));
 
         javalin.delete("/session",
                 new GenericHandler<>(
@@ -51,7 +55,8 @@ public class Server {
                         authDAO,
                         Void.class,
                         Void.class,
-                        (GenericHandler.LogoutServiceEndpoint) userService::logout
+                        (GenericHandler.LogoutServiceEndpoint) userService::logout,
+                        true
                 ));
 
         javalin.get("/game",
@@ -60,7 +65,19 @@ public class Server {
                         authDAO,
                         Void.class,
                         GameService.ListResponse.class,
-                        (GenericHandler.EmptyAuthServiceEndpoint<GameService.ListResponse>) gameService::listGames
+                        (GenericHandler.EmptyServiceEndpoint<GameService.ListResponse>) gameService::listGames,
+                        true
+                ));
+
+        javalin.post("/game",
+                new GenericHandler<>(
+                        gson,
+                        authDAO,
+                        GameService.CreateRequest.class,
+                        GameService.CreateResponse.class,
+                        (GenericHandler.PublicServiceEndpoint<GameService.CreateRequest, GameService.CreateResponse>)
+                                gameService::createGame,
+                        true
                 ));
     }
 
