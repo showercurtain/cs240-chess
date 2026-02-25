@@ -7,7 +7,7 @@ package chess;
  * signature of the existing methods.
  */
 public record ChessPosition(int row, int col) {
-    public record Offset(int row_offset, int col_offset) {
+    public record Offset(int rowOffset, int colOffset) {
         public static final Offset UP = new Offset(1,0);
         public static final Offset DOWN = new Offset(-1,0);
         public static final Offset LEFT = new Offset(0,-1);
@@ -46,7 +46,7 @@ public record ChessPosition(int row, int col) {
      * @return A new chess position with the specified offset
      */
     public ChessPosition withOffset(Offset offset) {
-        return new ChessPosition(row + offset.row_offset(), col + offset.col_offset());
+        return new ChessPosition(row + offset.rowOffset(), col + offset.colOffset());
     }
 
     @Override

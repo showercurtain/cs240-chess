@@ -79,7 +79,9 @@ public abstract class AbstractChessBoard {
     public ChessPosition findKing(ChessGame.TeamColor color) {
         ChessPiece king = color == ChessGame.TeamColor.WHITE ? W_KING : B_KING;
         for (Map.Entry<ChessPosition, ChessPiece> entry : getPieces().entrySet()) {
-            if (entry.getValue().equals(king)) return entry.getKey();
+            if (entry.getValue().equals(king)) {
+                return entry.getKey();
+            }
         }
         throw new RuntimeException("Invalid state: No king found");
     }
@@ -159,9 +161,15 @@ public abstract class AbstractChessBoard {
 
     @Override
     public boolean equals(final Object obj) {
-        if (obj == null) return false;
-        if (this == obj) return true;
-        if (!(obj instanceof AbstractChessBoard other)) return false;
+        if (obj == null) {
+            return false;
+        }
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof AbstractChessBoard other)) {
+            return false;
+        }
         Map<ChessPosition, ChessPiece> myPieces = getPieces();
         Map<ChessPosition, ChessPiece> otherPieces = other.getPieces();
         return myPieces.equals(otherPieces);
@@ -191,7 +199,7 @@ public abstract class AbstractChessBoard {
 
     public void movePiece(ChessMove move) {
         ChessPiece piece = getPiece(move.startPosition());
-        if (move.promotionPiece() == null ){
+        if (move.promotionPiece() == null ) {
             addPiece(move.endPosition(), piece);
         } else {
             addPiece(move.endPosition(), new ChessPiece(piece.pieceColor(), move.promotionPiece()));
@@ -221,13 +229,6 @@ public abstract class AbstractChessBoard {
 
     public abstract Map<ChessPosition, ChessPiece> getPieces();
 
-    public void setAllPieces(Map<ChessPosition, ChessPiece> pieces) {
-        clearBoard();
-        for (Map.Entry<ChessPosition, ChessPiece> entry : pieces.entrySet()) {
-            addPiece(entry.getKey(), entry.getValue());
-        }
-    }
-
     public boolean isInDanger(ChessPosition position) {
         ChessGame.TeamColor team = getPiece(position).getTeamColor();
 
@@ -236,7 +237,9 @@ public abstract class AbstractChessBoard {
             // If that piece can capture itself from where the king is, then the king is in check
             // This should always work when black and white pieces move the same (which is always, go figure)
             for (ChessMove move : type.captureMoves(this, position, team)) {
-                if (getPiece(move.endPosition()).type().equals(type)) return true;
+                if (getPiece(move.endPosition()).type().equals(type)) {
+                    return true;
+                }
             }
         }
 
@@ -246,7 +249,9 @@ public abstract class AbstractChessBoard {
     public Collection<ChessMove> getAllMoves(ChessGame.TeamColor team) {
         ArrayList<ChessMove> moves = new ArrayList<>();
         for (Map.Entry<ChessPosition, ChessPiece> entry : getPieces().entrySet()) {
-            if (!entry.getValue().getTeamColor().equals(team)) continue;
+            if (!entry.getValue().getTeamColor().equals(team)) {
+                continue;
+            }
             moves.addAll(entry.getValue().type().getMoves(this, entry.getKey(), team));
         }
 

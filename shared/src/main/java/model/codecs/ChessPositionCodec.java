@@ -8,7 +8,11 @@ import java.lang.reflect.Type;
 public class ChessPositionCodec
         implements JsonSerializer<ChessPosition>, JsonDeserializer<ChessPosition> {
     @Override
-    public ChessPosition deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
+    public ChessPosition deserialize(
+            JsonElement jsonElement,
+            Type type,
+            JsonDeserializationContext jsonDeserializationContext
+    ) throws JsonParseException {
         return ChessPosition.fromString(jsonElement.getAsString());
     }
 

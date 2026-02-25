@@ -15,12 +15,16 @@ public class MemoryUserDAO implements UserDAO {
 
     @Override
     public void createUser(UserData user) {
-        synchronized (data) { data.put(user.username(), user); }
+        synchronized (data) {
+            data.put(user.username(), user);
+        }
     }
 
     @Override
     public @Nullable UserData getUser(String username) {
-        synchronized (data) { return data.get(username); }
+        synchronized (data) {
+            return data.get(username);
+        }
     }
 
     @Override

@@ -2,7 +2,6 @@ package model.codecs;
 
 import chess.*;
 import com.google.gson.*;
-import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Type;
 import java.util.EnumSet;
@@ -12,7 +11,11 @@ public class ChessBoardCodec
         implements JsonSerializer<ChessBoard>, JsonDeserializer<ChessBoard> {
 
     @Override
-    public ChessBoard deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
+    public ChessBoard deserialize(
+            JsonElement jsonElement,
+            Type type,
+            JsonDeserializationContext jsonDeserializationContext
+    ) throws JsonParseException {
 
         JsonObject in = jsonElement.getAsJsonObject();
         ChessBoard board = new ChessBoard();

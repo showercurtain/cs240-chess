@@ -22,7 +22,11 @@ public class ChessGameCodec
     }
 
     @Override
-    public ChessGame deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
+    public ChessGame deserialize(
+            JsonElement jsonElement,
+            Type type,
+            JsonDeserializationContext jsonDeserializationContext
+    ) throws JsonParseException {
         JsonObject in = jsonElement.getAsJsonObject();
 
         ChessBoardCodec boardDeserializer = new ChessBoardCodec();

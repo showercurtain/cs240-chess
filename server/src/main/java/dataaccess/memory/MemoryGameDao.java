@@ -20,23 +20,31 @@ public class MemoryGameDao implements GameDAO {
 
     @Override
     public void createGame(GameData game) {
-        synchronized (data) { data.put(game.gameID(), game); }
+        synchronized (data) {
+            data.put(game.gameID(), game);
+        }
     }
 
     @Override
     public @Nullable GameData getGame(int identifier) {
-        synchronized (data) { return data.get(identifier); }
+        synchronized (data) {
+            return data.get(identifier);
+        }
     }
 
     @Override
     public Collection<GameData> listGames() {
-        synchronized (data) { return data.values().stream().map(GameData::copy).toList(); }
+        synchronized (data) {
+            return data.values().stream().map(GameData::copy).toList();
+        }
     }
 
     @Override
     public void updateGame(GameData game) throws DataAccessException {
         synchronized (data) {
-            if (!data.containsKey(game.gameID())) throw new DataAccessException("Game " + game.gameID() + " not found");
+            if (!data.containsKey(game.gameID())) {
+                throw new DataAccessException("Game " + game.gameID() + " not found");
+            }
             data.put(game.gameID(), game.copy());
         }
     }

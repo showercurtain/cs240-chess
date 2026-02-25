@@ -26,7 +26,9 @@ public class OverlayChessBoard extends AbstractChessBoard {
 
     @Override
     public ChessPiece getPiece(ChessPosition position) {
-        if (changes.containsKey(position)) return changes.get(position);
+        if (changes.containsKey(position)) {
+            return changes.get(position);
+        }
         return base.getPiece(position);
     }
 

@@ -15,18 +15,24 @@ public class MemoryAuthDAO implements AuthDAO {
 
     @Override
     public void createAuth(AuthData auth) {
-        synchronized (data) { data.put(auth.authToken(), auth); }
+        synchronized (data) {
+            data.put(auth.authToken(), auth);
+        }
     }
 
     @Override
     public @Nullable AuthData getAuth(String authToken) {
-        synchronized (data) { return data.get(authToken); }
+        synchronized (data) {
+            return data.get(authToken);
+        }
     }
 
     @Override
     public void deleteAuth(String authToken) {
         synchronized (data) {
-            if (!data.containsKey(authToken)) return;
+            if (!data.containsKey(authToken)) {
+                return;
+            }
             data.remove(authToken);
         }
     }

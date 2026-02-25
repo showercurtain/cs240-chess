@@ -75,15 +75,23 @@ public class ChessGame {
                 (team == TeamColor.WHITE && state.contains(AbstractChessBoard.CastleState.W_KING)) ||
                 (team == TeamColor.BLACK && state.contains(AbstractChessBoard.CastleState.B_KING));
 
-        if (!(castleKingside || castleQueenside)) return List.of();
+        if (!(castleKingside || castleQueenside)) {
+            return List.of();
+        }
 
         int startRow;
-        if (team == TeamColor.WHITE) startRow = 1;
-        else startRow = 8;
+        if (team == TeamColor.WHITE) {
+            startRow = 1;
+        }
+        else {
+            startRow = 8;
+        }
 
         ChessPosition startPosition = new ChessPosition(startRow, 5);
 
-        if (board.isInDanger(startPosition)) return List.of();
+        if (board.isInDanger(startPosition)) {
+            return List.of();
+        }
 
         ChessPosition left1 = startPosition.withOffset(new ChessPosition.Offset(0,-1));
         ChessPosition left2 = startPosition.withOffset(new ChessPosition.Offset(0,-2));
@@ -280,9 +288,15 @@ public class ChessGame {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) return false;
-        if (this == obj) return true;
-        if (!(obj instanceof ChessGame other)) return false;
+        if (obj == null) {
+            return false;
+        }
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof ChessGame other)) {
+            return false;
+        }
         return other.getBoard().equals(this.getBoard()) && other.getTeamTurn().equals(this.getTeamTurn());
     }
 

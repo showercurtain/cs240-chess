@@ -24,24 +24,24 @@ public record ChessPiece(ChessGame.TeamColor pieceColor, PieceType type) {
         DUMMY(new DummyMoveCalculator());
 
         PieceType(MoveCalculator moves) {
-            this.MOVE_CALCULATOR = moves;
+            this.moveCalculator = moves;
         }
 
-        private final MoveCalculator MOVE_CALCULATOR;
+        private final MoveCalculator moveCalculator;
 
         @Override
         public Collection<ChessMove> getMoves(AbstractChessBoard board, ChessPosition position, ChessGame.TeamColor color) {
-            return MOVE_CALCULATOR.getMoves(board, position, color);
+            return moveCalculator.getMoves(board, position, color);
         }
 
         @Override
         public Collection<ChessMove> captureMoves(AbstractChessBoard board, ChessPosition myPosition, ChessGame.TeamColor color) {
-            return MOVE_CALCULATOR.captureMoves(board, myPosition, color);
+            return moveCalculator.captureMoves(board, myPosition, color);
         }
 
         @Override
         public boolean validateMove(AbstractChessBoard board, ChessGame.TeamColor color, ChessMove move) {
-            return MOVE_CALCULATOR.validateMove(board, color, move);
+            return moveCalculator.validateMove(board, color, move);
         }
     }
 

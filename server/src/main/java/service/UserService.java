@@ -35,9 +35,13 @@ public class UserService {
 
     public LoginResult login(LoginRequest request) throws ServiceException {
         UserData user = userDAO.getUser(request.username());
-        if (user == null) throw ServiceException.UNAUTHORIZED;
+        if (user == null) {
+            throw ServiceException.UNAUTHORIZED;
+        }
 
-        if (!user.password().equals(request.password())) throw ServiceException.UNAUTHORIZED;
+        if (!user.password().equals(request.password())) {
+            throw ServiceException.UNAUTHORIZED;
+        }
 
         String auth = UUID.randomUUID().toString();
         authDAO.createAuth(new AuthData(auth, request.username()));

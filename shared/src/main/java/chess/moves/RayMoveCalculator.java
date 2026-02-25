@@ -17,18 +17,21 @@ public interface RayMoveCalculator extends MoveCalculator {
 
             while (true) {
                 pos = pos.withOffset(ray);
-                if (pos.onBoard()) {
-                    ChessPiece piece = board.getPiece(pos);
-                    if (piece != null) {
-                        if (piece.pieceColor() != color) {
-                            out.add(new ChessMove(position, pos, null));
-                        }
-                        break;
-                    }
-                    out.add(new ChessMove(position, pos, null));
-                } else {
+                if (!pos.onBoard()) {
                     break;
                 }
+                ChessPiece piece = board.getPiece(pos);
+
+                if (piece == null) {
+                    out.add(new ChessMove(position, pos, null));
+                    continue;
+                }
+
+                if (piece.pieceColor() != color) {
+                    out.add(new ChessMove(position, pos, null));
+                }
+
+                break;
             }
         }
 

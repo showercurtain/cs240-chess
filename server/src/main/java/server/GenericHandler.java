@@ -122,12 +122,18 @@ public class GenericHandler<Rq, Rs> implements Handler {
             }
             if (authenticated) {
                 String authToken = context.header("authorization");
-                if (authToken == null) throw ServiceException.UNAUTHORIZED;
+                if (authToken == null) {
+                    throw ServiceException.UNAUTHORIZED;
+                }
                 auth = authDAO.getAuth(authToken);
-                if (auth == null) throw ServiceException.UNAUTHORIZED;
+                if (auth == null) {
+                    throw ServiceException.UNAUTHORIZED;
+                }
             }
             Rs response = handler.run(auth, request);
-            if (responseType != Void.class) context.result(gson.toJson(response, responseType));
+            if (responseType != Void.class) {
+                context.result(gson.toJson(response, responseType));
+            }
         } catch (ServiceException e) {
             context.status(e.getHttpError());
             context.result(gson.toJson(Map.of("message", "Error: " + e.getMessage())));
