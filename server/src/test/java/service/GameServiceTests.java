@@ -12,7 +12,7 @@ import java.util.Optional;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class GameServiceTests {
     private static GameService service;
-    private static final AuthData auth = new AuthData("token","testing");
+    private static final AuthData AUTH = new AuthData("token","testing");
     private static int gameID = 0;
 
     @BeforeAll
@@ -60,7 +60,7 @@ public class GameServiceTests {
     public void joinNonexistentGameTest() {
         ServiceException error = null;
         try {
-            service.joinGame(auth, new GameService.JoinRequest(ChessGame.TeamColor.WHITE, 0));
+            service.joinGame(AUTH, new GameService.JoinRequest(ChessGame.TeamColor.WHITE, 0));
         } catch (ServiceException e) {
             error = e;
         }
@@ -72,7 +72,7 @@ public class GameServiceTests {
     @Test
     @Order(6)
     public void joinGameTest() throws ServiceException {
-        service.joinGame(auth, new GameService.JoinRequest(ChessGame.TeamColor.WHITE, gameID));
+        service.joinGame(AUTH, new GameService.JoinRequest(ChessGame.TeamColor.WHITE, gameID));
         Collection<GameData> games = service.listGames().games();
 
         assert games.size() == 3;
@@ -80,7 +80,7 @@ public class GameServiceTests {
         Optional<GameData> game = games.stream().filter(data -> data.gameID() == gameID).findFirst();
 
         assert game.isPresent();
-        assert game.get().whiteUsername().equals(auth.username());
+        assert game.get().whiteUsername().equals(AUTH.username());
     }
 
     @Test
@@ -88,7 +88,7 @@ public class GameServiceTests {
     public void joinGameAlreadyTakenTest() {
         ServiceException error = null;
         try {
-            service.joinGame(auth, new GameService.JoinRequest(ChessGame.TeamColor.WHITE, gameID));
+            service.joinGame(AUTH, new GameService.JoinRequest(ChessGame.TeamColor.WHITE, gameID));
         } catch (ServiceException e) {
             error = e;
         }
