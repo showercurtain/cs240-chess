@@ -19,7 +19,9 @@ public class NullCheckTypeAdapterFactory implements TypeAdapterFactory {
     @Override
     public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> typeToken) {
         Class<? super T> rawType = typeToken.getRawType();
-        if (!rawType.isRecord()) return null;
+        if (!rawType.isRecord()) {
+            return null;
+        }
 
         TypeAdapter<T> delegate = gson.getDelegateAdapter(this, typeToken);
         return new TypeAdapter<>() {

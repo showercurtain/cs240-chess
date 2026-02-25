@@ -15,8 +15,8 @@ public class ServiceException extends Exception {
         httpError = 500;
     }
 
-    public ServiceException withError(int http_error) {
-        this.httpError = http_error;
+    public ServiceException withError(int httpError) {
+        this.httpError = httpError;
         return this;
     }
 

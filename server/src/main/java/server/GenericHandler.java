@@ -11,51 +11,51 @@ import service.ServiceException;
 
 import java.util.Map;
 
-public class GenericHandler<Rq, Rs> implements Handler {
-    public interface EndpointHandler<Rq, Rs> {
-        Rs run(AuthData auth, Rq request) throws ServiceException;
+public class GenericHandler<Q, R> implements Handler {
+    public interface EndpointHandler<Q, R> {
+        R run(AuthData auth, Q request) throws ServiceException;
     }
 
     @FunctionalInterface
-    public interface PublicServiceEndpoint<Rq, Rs> extends EndpointHandler<Rq, Rs> {
+    public interface PublicServiceEndpoint<Q, R> extends EndpointHandler<Q, R> {
         @Override
-        default Rs run(AuthData authData, Rq request) throws ServiceException {
+        default R run(AuthData authData, Q request) throws ServiceException {
             return run(request);
         }
-        Rs run(Rq request) throws ServiceException;
+        R run(Q request) throws ServiceException;
     }
 
     @FunctionalInterface
-    public interface AuthServiceEndpoint<Rq, Rs> extends EndpointHandler<Rq, Rs> {
+    public interface AuthServiceEndpoint<Q, R> extends EndpointHandler<Q, R> {
     }
 
     @FunctionalInterface
-    public interface EmptyAuthServiceEndpoint<Rs> extends EndpointHandler<Void, Rs> {
+    public interface EmptyAuthServiceEndpoint<R> extends EndpointHandler<Void, R> {
         @Override
-        default Rs run(AuthData auth, Void request) throws ServiceException {
+        default R run(AuthData auth, Void request) throws ServiceException {
             return run(auth);
         }
-        Rs run(AuthData auth) throws ServiceException;
+        R run(AuthData auth) throws ServiceException;
     }
 
     @FunctionalInterface
-    public interface EmptyServiceEndpoint<Rs> extends EndpointHandler<Void, Rs> {
+    public interface EmptyServiceEndpoint<R> extends EndpointHandler<Void, R> {
         @Override
-        default Rs run(AuthData auth, Void request) throws ServiceException {
+        default R run(AuthData auth, Void request) throws ServiceException {
             return run();
         }
-        Rs run() throws ServiceException;
+        R run() throws ServiceException;
     }
 
     @FunctionalInterface
-    public interface AuthVoidServiceEndpoint<Rq> extends EndpointHandler<Rq, Void> {
+    public interface AuthVoidServiceEndpoint<Q> extends EndpointHandler<Q, Void> {
         @Override
-        default Void run(AuthData auth, Rq request) throws ServiceException {
+        default Void run(AuthData auth, Q request) throws ServiceException {
             exec(auth, request);
             return null;
         }
 
-        void exec(AuthData auth, Rq request) throws ServiceException;
+        void exec(AuthData auth, Q request) throws ServiceException;
     }
 
     @FunctionalInterface
@@ -78,11 +78,11 @@ public class GenericHandler<Rq, Rs> implements Handler {
         void run() throws ServiceException;
     }
 
-    Class<Rq> requestType;
-    Class<Rs> responseType;
+    Class<Q> requestType;
+    Class<R> responseType;
     boolean authenticated;
     
-    EndpointHandler<Rq, Rs> handler;
+    EndpointHandler<Q, R> handler;
 
     Gson gson;
     AuthDAO authDAO;
@@ -90,9 +90,9 @@ public class GenericHandler<Rq, Rs> implements Handler {
     public GenericHandler(
             Gson gson,
             AuthDAO authDAO,
-            Class<Rq> requestType,
-            Class<Rs> responseType,
-            EndpointHandler<Rq, Rs> handler,
+            Class<Q> requestType,
+            Class<R> responseType,
+            EndpointHandler<Q, R> handler,
             boolean authenticated
     ) {
         this.gson = gson;
@@ -113,7 +113,7 @@ public class GenericHandler<Rq, Rs> implements Handler {
         context.contentType("application/json");
         try {
             AuthData auth = null;
-            Rq request = null;
+            Q request = null;
             if (requestType != Void.class) {
                 request = gson.fromJson(context.body(), requestType);
                 if (request == null) {
@@ -130,7 +130,7 @@ public class GenericHandler<Rq, Rs> implements Handler {
                     throw ServiceException.UNAUTHORIZED;
                 }
             }
-            Rs response = handler.run(auth, request);
+            R response = handler.run(auth, request);
             if (responseType != Void.class) {
                 context.result(gson.toJson(response, responseType));
             }

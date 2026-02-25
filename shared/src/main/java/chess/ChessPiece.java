@@ -82,7 +82,9 @@ public record ChessPiece(ChessGame.TeamColor pieceColor, PieceType type) {
             case DUMMY -> "o";
         };
 
-        if (pieceColor == ChessGame.TeamColor.WHITE) out = out.toUpperCase();
+        if (pieceColor == ChessGame.TeamColor.WHITE) {
+            out = out.toUpperCase();
+        }
 
         return out;
     }

@@ -32,7 +32,9 @@ public class GameService {
 
     public void joinGame(AuthData auth, JoinRequest request) throws ServiceException {
         GameData game = gameDAO.getGame(request.gameID());
-        if (game == null) throw new ServiceException("No such game").withError(400);
+        if (game == null) {
+            throw new ServiceException("No such game").withError(400);
+        }
         if (request.playerColor == ChessGame.TeamColor.WHITE) {
             if (game.whiteUsername() != null) {
                 throw new ServiceException("already taken").withError(403);
