@@ -9,9 +9,7 @@ import java.util.UUID;
 
 public class UserService {
     public record RegisterRequest(String username, String password, String email) {}
-    public record RegisterResult(String username, String authToken) {}
     public record LoginRequest(String username, String password) {}
-    public record LoginResult(String username, String authToken) {}
 
     private final AuthDAO authDAO;
     private final UserDAO userDAO;
@@ -21,19 +19,20 @@ public class UserService {
         this.userDAO = userDAO;
     }
 
-    public RegisterResult register(RegisterRequest request) throws ServiceException {
+    public AuthData register(RegisterRequest request) throws ServiceException {
         if (userDAO.getUser(request.username()) != null) {
             throw new ServiceException("username already taken").withError(403);
         }
 
         userDAO.createUser(new UserData(request.username(), request.password(), request.email()));
-        String auth = UUID.randomUUID().toString();
-        authDAO.createAuth(new AuthData(auth, request.username()));
+        String authToken = UUID.randomUUID().toString();
+        AuthData auth = new AuthData(authToken, request.username());
+        authDAO.createAuth(auth);
 
-        return new RegisterResult(request.username(), auth);
+        return auth;
     }
 
-    public LoginResult login(LoginRequest request) throws ServiceException {
+    public AuthData login(LoginRequest request) throws ServiceException {
         UserData user = userDAO.getUser(request.username());
         if (user == null) {
             throw ServiceException.UNAUTHORIZED;
@@ -43,10 +42,11 @@ public class UserService {
             throw ServiceException.UNAUTHORIZED;
         }
 
-        String auth = UUID.randomUUID().toString();
-        authDAO.createAuth(new AuthData(auth, request.username()));
+        String authToken = UUID.randomUUID().toString();
+        AuthData auth = new AuthData(authToken, request.username());
+        authDAO.createAuth(auth);
 
-        return new LoginResult(request.username(), auth);
+        return auth;
     }
 
     public void logout(AuthData authToken) throws ServiceException {

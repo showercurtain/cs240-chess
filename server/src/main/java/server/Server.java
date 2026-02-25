@@ -5,9 +5,10 @@ import dataaccess.AuthDAO;
 import dataaccess.GameDAO;
 import dataaccess.UserDAO;
 import dataaccess.memory.MemoryAuthDAO;
-import dataaccess.memory.MemoryGameDao;
+import dataaccess.memory.MemoryGameDAO;
 import dataaccess.memory.MemoryUserDAO;
 import io.javalin.*;
+import model.AuthData;
 import model.GsonUtil;
 import service.GameService;
 import service.MiscService;
@@ -23,7 +24,7 @@ public class Server {
 
         AuthDAO authDAO = new MemoryAuthDAO();
         UserDAO userDAO = new MemoryUserDAO();
-        GameDAO gameDAO = new MemoryGameDao();
+        GameDAO gameDAO = new MemoryGameDAO();
 
         UserService userService = new UserService(authDAO, userDAO);
         GameService gameService = new GameService(gameDAO);
@@ -34,8 +35,8 @@ public class Server {
                         gson,
                         authDAO,
                         UserService.RegisterRequest.class,
-                        UserService.RegisterResult.class,
-                        (GenericHandler.PublicServiceEndpoint<UserService.RegisterRequest, UserService.RegisterResult>)
+                        AuthData.class,
+                        (GenericHandler.PublicServiceEndpoint<UserService.RegisterRequest, AuthData>)
                                 userService::register,
                         false
                 ));
@@ -45,8 +46,8 @@ public class Server {
                         gson,
                         authDAO,
                         UserService.LoginRequest.class,
-                        UserService.LoginResult.class,
-                        (GenericHandler.PublicServiceEndpoint<UserService.LoginRequest, UserService.LoginResult>)
+                        AuthData.class,
+                        (GenericHandler.PublicServiceEndpoint<UserService.LoginRequest, AuthData>)
                                 userService::login,
                         false
                 ));

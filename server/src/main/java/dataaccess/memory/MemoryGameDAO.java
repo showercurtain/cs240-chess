@@ -9,11 +9,11 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class MemoryGameDao implements GameDAO {
+public class MemoryGameDAO implements GameDAO {
     final HashMap<Integer, GameData> data;
     final AtomicInteger currentID;
 
-    public MemoryGameDao() {
+    public MemoryGameDAO() {
         data = new HashMap<>();
         currentID = new AtomicInteger(1);
     }
