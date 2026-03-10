@@ -33,4 +33,7 @@ public class MemoryUserDAO implements UserDAO {
             data.clear();
         }
     }
+
+    @Override
+    public void initTable() { }
 }

@@ -1,6 +1,7 @@
 package dataaccess.memory;
 
 import dataaccess.AuthDAO;
+import dataaccess.DataAccessException;
 import model.AuthData;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,4 +44,7 @@ public class MemoryAuthDAO implements AuthDAO {
             data.clear();
         }
     }
+
+    @Override
+    public void initTable() { }
 }

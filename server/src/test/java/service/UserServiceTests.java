@@ -1,7 +1,11 @@
 package service;
 
+import dataaccess.AuthDAO;
+import dataaccess.DataAccessException;
+import dataaccess.UserDAO;
 import dataaccess.memory.MemoryAuthDAO;
 import dataaccess.memory.MemoryUserDAO;
+import dataaccess.mysql.MySQLAuthDAO;
 import model.AuthData;
 import org.junit.jupiter.api.*;
 
@@ -13,7 +17,15 @@ public class UserServiceTests {
 
     @BeforeAll
     public static void init() {
-        service = new UserService(new MemoryAuthDAO(), new MemoryUserDAO());
+        AuthDAO authDAO = new MySQLAuthDAO();
+        UserDAO userDAO = new MemoryUserDAO();
+        try {
+            authDAO.initTable();
+            userDAO.initTable();
+        } catch (DataAccessException e) {
+            throw new RuntimeException(e);
+        }
+        service = new UserService(authDAO, userDAO);
     }
 
     @Order(1)

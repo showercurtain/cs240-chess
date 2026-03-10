@@ -62,4 +62,7 @@ public class MemoryGameDAO implements GameDAO {
             data.clear();
         }
     }
+
+    @Override
+    public void initTable() { }
 }
