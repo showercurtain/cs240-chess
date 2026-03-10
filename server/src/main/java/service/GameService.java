@@ -24,10 +24,9 @@ public class GameService {
     }
 
     public CreateResponse createGame(CreateRequest request) throws ServiceException {
-        int nextID = gameDAO.nextID();
-        GameData game = new GameData(nextID, null, null, request.gameName(), new ChessGame());
-        gameDAO.createGame(game);
-        return new CreateResponse(nextID);
+        GameData game = new GameData(0, null, null, request.gameName(), new ChessGame());
+        int id = gameDAO.createGame(game);
+        return new CreateResponse(id);
     }
 
     public void joinGame(AuthData auth, JoinRequest request) throws ServiceException {

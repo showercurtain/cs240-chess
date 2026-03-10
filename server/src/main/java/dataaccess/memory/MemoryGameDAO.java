@@ -19,10 +19,13 @@ public class MemoryGameDAO implements GameDAO {
     }
 
     @Override
-    public void createGame(GameData game) {
+    public int createGame(GameData game) {
+        int id = nextID();
+        GameData newGame = new GameData(id, game.whiteUsername(), game.blackUsername(), game.gameName(), game.game());
         synchronized (data) {
-            data.put(game.gameID(), game);
+            data.put(id, newGame);
         }
+        return id;
     }
 
     @Override
@@ -49,8 +52,7 @@ public class MemoryGameDAO implements GameDAO {
         }
     }
 
-    @Override
-    public int nextID() {
+    private int nextID() {
         return currentID.getAndIncrement();
     }
 
