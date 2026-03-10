@@ -6,6 +6,7 @@ import dataaccess.UserDAO;
 import dataaccess.memory.MemoryAuthDAO;
 import dataaccess.memory.MemoryUserDAO;
 import dataaccess.mysql.MySQLAuthDAO;
+import dataaccess.mysql.MySQLUserDAO;
 import model.AuthData;
 import org.junit.jupiter.api.*;
 
@@ -18,7 +19,7 @@ public class UserServiceTests {
     @BeforeAll
     public static void init() {
         AuthDAO authDAO = new MySQLAuthDAO();
-        UserDAO userDAO = new MemoryUserDAO();
+        UserDAO userDAO = new MySQLUserDAO();
         try {
             authDAO.initTable();
             userDAO.initTable();

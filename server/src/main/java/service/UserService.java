@@ -33,12 +33,8 @@ public class UserService {
     }
 
     public AuthData login(LoginRequest request) throws ServiceException {
-        UserData user = userDAO.getUser(request.username());
+        UserData user = userDAO.getUserAuth(request.username(), request.password());
         if (user == null) {
-            throw ServiceException.UNAUTHORIZED;
-        }
-
-        if (!user.password().equals(request.password())) {
             throw ServiceException.UNAUTHORIZED;
         }
 

@@ -36,4 +36,18 @@ public class MemoryUserDAO implements UserDAO {
 
     @Override
     public void initTable() { }
+
+    @Nullable
+    @Override
+    public UserData getUserAuth(String username, String password) {
+        UserData user;
+        synchronized (data) {
+            user = data.get(username);
+        }
+        if (user.password().equals(password)) {
+            return user;
+        } else {
+            return null;
+        }
+    }
 }

@@ -9,4 +9,6 @@ public interface UserDAO {
     UserData getUser(String username) throws DataAccessException;
     void clear() throws DataAccessException;
     void initTable() throws DataAccessException;
+    @Nullable
+    UserData getUserAuth(String username, String password) throws DataAccessException;
 }
