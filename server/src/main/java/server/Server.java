@@ -9,6 +9,7 @@ import dataaccess.memory.MemoryAuthDAO;
 import dataaccess.memory.MemoryGameDAO;
 import dataaccess.memory.MemoryUserDAO;
 import dataaccess.mysql.MySQLAuthDAO;
+import dataaccess.mysql.MySQLGameDAO;
 import dataaccess.mysql.MySQLUserDAO;
 import io.javalin.*;
 import model.AuthData;
@@ -29,7 +30,8 @@ public class Server {
         AuthDAO authDAO = new MySQLAuthDAO();
         //UserDAO userDAO = new MemoryUserDAO();
         UserDAO userDAO = new MySQLUserDAO();
-        GameDAO gameDAO = new MemoryGameDAO();
+        //GameDAO gameDAO = new MemoryGameDAO();
+        GameDAO gameDAO = new MySQLGameDAO();
 
         try {
             authDAO.initTable();
