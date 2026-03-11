@@ -14,10 +14,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 public class MySQLGameDAO implements GameDAO {
-    private final Gson GSON;
+    private final Gson gson;
 
     public MySQLGameDAO() {
-        GSON = GsonUtil.buildGson();
+        gson = GsonUtil.buildGson();
     }
 
     @Override
@@ -25,7 +25,7 @@ public class MySQLGameDAO implements GameDAO {
         try (Connection conn = DatabaseManager.getConnection()) {
             String query = "INSERT INTO games (gameName, game) VALUES (?, ?)";
             try (PreparedStatement ps = conn.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
-                String gameJSON = GSON.toJson(game.game());
+                String gameJSON = gson.toJson(game.game());
                 ps.setString(1, game.gameName());
                 ps.setString(2, gameJSON);
                 ps.executeUpdate();
@@ -56,7 +56,7 @@ public class MySQLGameDAO implements GameDAO {
                             rs.getString(1),
                             rs.getString(2),
                             rs.getString(3),
-                            GSON.fromJson(rs.getString(4), ChessGame.class));
+                            gson.fromJson(rs.getString(4), ChessGame.class));
                 }
             }
         } catch (SQLException e) {
@@ -79,7 +79,7 @@ public class MySQLGameDAO implements GameDAO {
                             rs.getString(2),
                             rs.getString(3),
                             rs.getString(4),
-                            GSON.fromJson(rs.getString(5), ChessGame.class)));
+                            gson.fromJson(rs.getString(5), ChessGame.class)));
                 }
                 return out;
             }
@@ -94,7 +94,7 @@ public class MySQLGameDAO implements GameDAO {
             String query = "UPDATE games SET whiteUsername = ?, blackUsername = ?, gameName = ?, game = ?  WHERE id = ?";
             try (PreparedStatement ps = conn.prepareStatement(query)) {
                 ps.setInt(5, game.gameID());
-                String gameJSON = GSON.toJson(game.game());
+                String gameJSON = gson.toJson(game.game());
                 ps.setString(1, game.whiteUsername());
                 ps.setString(2, game.blackUsername());
                 ps.setString(3, game.gameName());
