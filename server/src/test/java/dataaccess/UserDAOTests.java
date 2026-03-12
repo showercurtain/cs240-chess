@@ -15,6 +15,11 @@ public class UserDAOTests {
 
     @BeforeEach
     public void setup() throws DataAccessException {
+        UserDAOTests.cleanup();
+    }
+
+    @AfterAll
+    public static void cleanup() throws DataAccessException {
         MYSQL_USER_DAO.clear();
     }
 
