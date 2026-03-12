@@ -5,9 +5,6 @@ import dataaccess.AuthDAO;
 import dataaccess.DataAccessException;
 import dataaccess.GameDAO;
 import dataaccess.UserDAO;
-import dataaccess.memory.MemoryAuthDAO;
-import dataaccess.memory.MemoryGameDAO;
-import dataaccess.memory.MemoryUserDAO;
 import dataaccess.mysql.MySQLAuthDAO;
 import dataaccess.mysql.MySQLGameDAO;
 import dataaccess.mysql.MySQLUserDAO;
@@ -26,11 +23,8 @@ public class Server {
         javalin = Javalin.create(config -> config.staticFiles.add("web"));
         Gson gson = GsonUtil.buildGson();
 
-        //AuthDAO authDAO = new MemoryAuthDAO();
         AuthDAO authDAO = new MySQLAuthDAO();
-        //UserDAO userDAO = new MemoryUserDAO();
         UserDAO userDAO = new MySQLUserDAO();
-        //GameDAO gameDAO = new MemoryGameDAO();
         GameDAO gameDAO = new MySQLGameDAO();
 
         try {
