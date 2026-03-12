@@ -99,7 +99,9 @@ public class MySQLGameDAO implements GameDAO {
                 ps.setString(2, game.blackUsername());
                 ps.setString(3, game.gameName());
                 ps.setString(4, gameJSON);
-                ps.executeUpdate();
+                if (ps.executeUpdate() == 0) {
+                    throw new DataAccessException("No such game").withError(400);
+                }
             }
         } catch (SQLException e) {
             throw new DataAccessException(e);

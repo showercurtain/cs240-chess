@@ -4,7 +4,6 @@ import dataaccess.mysql.MySQLUserDAO;
 import model.UserData;
 import org.junit.jupiter.api.*;
 
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class UserDAOTests {
     private static final UserDAO MYSQL_USER_DAO = new MySQLUserDAO();
 

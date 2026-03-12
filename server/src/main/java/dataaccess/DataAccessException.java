@@ -16,4 +16,10 @@ public class DataAccessException extends ServiceException {
     public DataAccessException(Throwable ex) {
         super("Database error while processing request: " + ex.getMessage(), ex);
     }
+
+    @Override
+    public DataAccessException withError(int httpError) {
+        super.withError(httpError);
+        return this;
+    }
 }
