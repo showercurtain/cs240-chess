@@ -169,7 +169,7 @@ public class StandardAPITests {
 
         assertHttpOk(createResult);
         Assertions.assertNotNull(createResult.getGameID(), "Result did not return a game ID");
-        Assertions.assertTrue(createResult.getGameID() > 0, "Result returned invalid game ID");
+        Assertions.assertTrue(createResult.getGameID() > 0, "Result returned invalid game ID ("+createResult.getGameID()+")");
     }
 
     @Test
