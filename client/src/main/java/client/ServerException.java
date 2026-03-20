@@ -1,6 +1,6 @@
 package client;
 
-public class ServerException extends RuntimeException {
+public class ServerException extends Exception {
     int httpCode;
 
     public ServerException(String message, int httpCode) {
