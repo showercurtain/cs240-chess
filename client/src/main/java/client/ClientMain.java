@@ -11,7 +11,8 @@ public class ClientMain {
     public static void main(String[] args) {
         System.out.println("♕ 240 Chess Client");
         try {
-            ServerFacade server = new ServerFacade(new URI(args[0]));
+            URI uri = args.length == 0 ? new URI("http://localhost:8080") : new URI(args[0]);
+            ServerFacade server = new ServerFacade(uri);
             Repl repl = new Repl(server);
             repl.start();
         } catch (URISyntaxException e) {
