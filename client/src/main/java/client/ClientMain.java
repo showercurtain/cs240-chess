@@ -3,6 +3,7 @@ package client;
 import chess.*;
 import ui.Repl;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -15,7 +16,8 @@ public class ClientMain {
             repl.start();
         } catch (URISyntaxException e) {
             System.out.println("Invalid URI: " + e.getMessage());
+        } catch (IOException e) {
+            System.out.println("IO Error: " + e.getMessage());
         }
-
     }
 }
