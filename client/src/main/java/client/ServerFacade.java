@@ -74,15 +74,25 @@ public class ServerFacade {
         makeRequest("/db", "DELETE", null, null, null);
     }
 
-    public Collection<GameData> listGames() {
-        throw new RuntimeException("Not implemented");
+    public record ListResponse(Collection<GameData> games){}
+    public Collection<GameData> listGames(AuthData auth) throws ServerException {
+        ListResponse res = makeRequest("/game", "GET", auth, null, ListResponse.class);
+        if (res == null) {
+            throw new ServerException("Programmer error", 0);
+        }
+        return res.games;
     }
 
-    public int createGame(String gameName) {
-        throw new RuntimeException("Not implemented");
+    public record CreateResponse(int gameID) {}
+    public int createGame(String gameName, AuthData auth) throws ServerException {
+        CreateResponse res = makeRequest("/game", "POST", auth, Map.of("gameName", gameName), CreateResponse.class);
+        if (res == null) {
+            throw new ServerException("Programmer error", 0);
+        }
+        return res.gameID;
     }
 
-    public void joinGame(AuthData auth, ChessGame.TeamColor playerColor, int gameID) {
-        throw new RuntimeException("Not implemented");
+    public void joinGame(AuthData auth, ChessGame.TeamColor playerColor, int gameID) throws ServerException {
+        makeRequest("/game", "PUT", auth, Map.of("playerColor", playerColor, "gameID", gameID), null);
     }
 }
