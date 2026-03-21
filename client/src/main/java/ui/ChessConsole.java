@@ -3,7 +3,6 @@ package ui;
 import chess.*;
 import client.ServerException;
 import model.GameData;
-import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.List;
@@ -217,7 +216,7 @@ public abstract class ChessConsole implements ChessTerminal {
     @Override
     public void showGame(GameData game, ChessGame.TeamColor side) {
         StringBuilder builder = new StringBuilder();
-        int padding = (30 - game.gameName().length()) / 2;
+        int padding = (30 + game.gameName().length()) / 2;
         builder.append(String.format("%" + padding + "s\n", game.gameName()));
         buildBoard(builder, game.game().getBoard(), side);
         builder.append("White: ");
@@ -227,7 +226,7 @@ public abstract class ChessConsole implements ChessTerminal {
             builder.append(game.whiteUsername()).append("\n");
         }
         builder.append("Black: ");
-        if (game.whiteUsername() == null) {
+        if (game.blackUsername() == null) {
             builder.append(EscapeSequences.SET_TEXT_COLOR_BLUE).append("Unclaimed").append(EscapeSequences.RESET_TEXT_COLOR).append("\n");
         } else {
             builder.append(game.blackUsername()).append("\n");

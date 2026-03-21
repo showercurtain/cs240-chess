@@ -4,16 +4,16 @@ import chess.*;
 import client.ServerException;
 import client.ServerFacade;
 import model.AuthData;
+import model.GameData;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Repl {
     AuthData auth;
     ServerFacade server;
     ChessTerminal terminal;
+    Collection<GameData> games;
 
     public Repl(ServerFacade server) throws IOException {
         auth = null;
@@ -79,6 +79,92 @@ public class Repl {
         terminal.showBoard(board, color);
     }
 
+    private void listGames() throws ServerException {
+        games = server.listGames(auth);
+        if (games.isEmpty()) {
+            terminal.displayInfo("No games yet!");
+            return;
+        }
+        int[] ids = new int[games.size()];
+        int i = 0;
+        for (GameData game : games) {
+            ids[i] = game.gameID();
+            i += 1;
+        }
+        int maxLength = Integer.toString(Arrays.stream(ids).max().getAsInt()).length();
+        for (GameData game : games) {
+            String id = Integer.toString(game.gameID());
+            terminal.displayInfo(String.format(" %" + (maxLength - id.length() + 1) + "s: %s", id, game.gameName()));
+        }
+    }
+
+    private int getGameID(Map<String, String> args) {
+        String gameId = args.get("gameID");
+        if (gameId == null) {
+            terminal.displayError("Game ID is required!");
+            return -1;
+        }
+        int id;
+        try {
+            id = Integer.parseInt(gameId);
+        } catch (NumberFormatException e) {
+            terminal.displayError("Invalid gameID "+gameId);
+            return -1;
+        }
+        return id;
+    }
+
+    private void joinGame(Map<String, String> args) throws ServerException {
+        int id = getGameID(args);
+        if (id == -1) {
+            return;
+        }
+        String side = args.get("side");
+        if (side == null) {
+            terminal.displayError("Side is required!");
+            return;
+        }
+        ChessGame.TeamColor color = switch (side.toLowerCase()) {
+            case "white" -> ChessGame.TeamColor.WHITE;
+            case "black" -> ChessGame.TeamColor.BLACK;
+            default -> {
+                terminal.displayError("Invalid side " + side);
+                terminal.displayError("Side must be white or black");
+                yield null;
+            }
+        };
+        if (color == null) {
+            return;
+        }
+        server.joinGame(auth, color, id);
+        terminal.displayInfo("Joined successfully!");
+    }
+
+    private void createGame(Map<String, String> args) throws ServerException {
+        String gameName = args.get("name");
+        if (gameName == null) {
+            gameName = terminal.prompt("Game name: ", false);
+        }
+        int id = server.createGame(gameName, auth);
+        terminal.displayInfo("Created game " + gameName + " with id " + id);
+    }
+
+    private void observeGame(Map<String, String> args) throws ServerException {
+        int id = getGameID(args);
+        if (id == -1) {
+            return;
+        }
+        games = server.listGames(auth);
+        for (GameData game : games) {
+            if (game.gameID() == id) {
+                terminal.displayInfo(game.toString());
+                terminal.showGame(game, auth.username().equals(game.blackUsername()) ? ChessGame.TeamColor.BLACK : ChessGame.TeamColor.WHITE);
+                return;
+            }
+        }
+        terminal.displayError("No game with id "+id);
+    }
+
     private List<Command> getUnauthenticatedCommands() {
         return List.of(
                 Command.makeCommand(terminal::displayHelp, "help", "Display this help menu"),
@@ -97,7 +183,14 @@ public class Repl {
         return List.of(
                 Command.makeCommand(terminal::displayHelp, "help", "Display this help menu"),
                 Command.makeCommand(() -> true, "exit", "Closes the application"),
-                Command.makeCommand(this::logout, "logout", "Log out of Chess")
+                Command.makeCommand(this::logout, "logout", "Log out of Chess"),
+                Command.makeCommand(this::listGames, "list", "List all games"),
+                Command.makeCommand(this::joinGame, "join", "Join a game",
+                        List.of("gameID", "side"), Collections.emptyList()),
+                Command.makeCommand(this::createGame, "create", "Create a game",
+                        Collections.emptyList(), List.of("name")),
+                Command.makeCommand(this::observeGame, "observe", "Observe a game",
+                        List.of("gameID"), Collections.emptyList())
         );
     }
 

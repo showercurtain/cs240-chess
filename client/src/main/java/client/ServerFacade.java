@@ -20,7 +20,7 @@ public class ServerFacade {
 
     private static final Duration TIMEOUT = Duration.ofSeconds(5);
     private final HttpClient httpClient = HttpClient.newHttpClient();
-    private final Gson gson = GsonUtil.buildGson();
+    private final Gson gson = GsonUtil.buildRelaxedGson();
     private final URI serverURI;
 
     public ServerFacade(URI serverURI) {

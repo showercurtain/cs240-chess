@@ -36,7 +36,7 @@ public class GameService {
         }
         if (request.playerColor == ChessGame.TeamColor.WHITE) {
             if (game.whiteUsername() != null) {
-                throw new ServiceException("already taken").withError(403);
+                throw new ServiceException("Already taken").withError(403);
             }
             gameDAO.updateGame(new GameData(
                     game.gameID(),
