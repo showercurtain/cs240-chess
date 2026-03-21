@@ -12,6 +12,7 @@ import org.jline.utils.AttributedStyle;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Stream;
 
 public class FancyConsole extends ChessConsole {
     Terminal terminal;
@@ -20,20 +21,73 @@ public class FancyConsole extends ChessConsole {
     final Highlighter highlighter = new Highlighter() {
         @Override
         public AttributedString highlight(LineReader lineReader, String buffer) {
-            if (!prompting) {
+            if (!prompting || buffer.isEmpty()) {
                 return new AttributedString(buffer);
             }
-            for (Command command : commands.values()) {
-                if (buffer.startsWith(command.getName())) {
-                    AttributedStringBuilder builder = new AttributedStringBuilder();
-                    builder.styled(
-                            AttributedStyle.DEFAULT.foreground(AttributedStyle.BLUE),
-                            command.getName());
-                    builder.append(buffer.substring(command.getName().length()));
-                    return builder.toAttributedString();
+            int start = -1;
+            int end = -1;
+            for (int i = 0; i < buffer.length(); i++) {
+                char c = buffer.charAt(i);
+                if (c == ' ' && start != -1) {
+                    end = i;
+                    break;
+                } else if (c != ' ' && start == -1) {
+                    start = i;
                 }
             }
-            return new AttributedString(buffer);
+            if (end == -1) {
+                end = buffer.length();
+            }
+            if (start == -1) {
+                return new AttributedString(buffer);
+            }
+            String cmdString = buffer.substring(start, end);
+            Command command = commands.get(cmdString);
+            if (command == null) {
+                return new AttributedString(buffer);
+            }
+            AttributedStringBuilder builder = new AttributedStringBuilder();
+            builder.styled(
+                    AttributedStyle.DEFAULT.foreground(AttributedStyle.BLUE),
+                    buffer.substring(0, end)
+            );
+            Iterator<String> args = Stream.concat(command.getRequiredArguments().stream(), command.getExtraArguments().stream()).iterator();
+            if (!args.hasNext()) {
+                builder.append(buffer.substring(end));
+                return builder.toAttributedString();
+            }
+            start = -1;
+            int oldEnd = end;
+            for (int i = end; i <= buffer.length(); i++) {
+                char c;
+                if (i == buffer.length()) {
+                    c = ' ';
+                } else {
+                    c = buffer.charAt(i);
+                }
+                if (c == ' ' && start != -1) {
+                    end = i;
+                    String arg = buffer.substring(start, end);
+                    String argName = args.next();
+                    if (command.getValidValues(argName).contains(arg)) {
+                        builder.styled(
+                                AttributedStyle.DEFAULT.foreground(AttributedStyle.YELLOW),
+                                buffer.substring(oldEnd, end)
+                        );
+                    } else {
+                        builder.append(buffer.substring(oldEnd, end));
+                    }
+                    oldEnd = end;
+                    if (!args.hasNext()) {
+                        break;
+                    }
+                } else if (c != ' ' && start == -1) {
+                    start = i;
+                }
+            }
+            builder.append(buffer.substring(end));
+
+            return builder.toAttributedString();
         }
     };
 

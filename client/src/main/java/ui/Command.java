@@ -1,17 +1,16 @@
 package ui;
 
 import client.ServerException;
-import model.AuthData;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Supplier;
 
 public interface Command {
     String getName();
     String getDescription();
     List<String> getRequiredArguments();
     List<String> getExtraArguments();
+    Collection<String> getValidValues(String arg);
     boolean execute(Map<String, String> args) throws ServerException;
 
     interface BasicCommand {
@@ -31,7 +30,8 @@ public interface Command {
     }
 
     static Command makeCommand(FullCommand command, String name, String description,
-                               List<String> requiredArguments, List<String> extraArguments) {
+                               List<String> requiredArguments, List<String> extraArguments,
+                               Map<String, Supplier<Collection<String>>> validValues) {
         return new Command() {
             @Override
             public String getName() {
@@ -54,6 +54,15 @@ public interface Command {
             }
 
             @Override
+            public Collection<String> getValidValues(String arg) {
+                Supplier<Collection<String>> supplier = validValues.get(arg);
+                if (supplier == null) {
+                    return Collections.emptyList();
+                }
+                return supplier.get();
+            }
+
+            @Override
             public boolean execute(Map<String, String> args) throws ServerException {
                 return command.run(args);
             }
@@ -62,15 +71,15 @@ public interface Command {
 
     static Command makeCommand(BasicCommand command, String name, String description) {
         return makeCommand((Map<String, String> args) -> {
-            command.run();
-            return false;
+                command.run();
+                return false;
             },
-                name, description, Collections.emptyList(), Collections.emptyList());
+                name, description, Collections.emptyList(), Collections.emptyList(), Collections.emptyMap());
     }
 
     static Command makeCommand(ExitCommand command, String name, String description) {
         return makeCommand((Map<String, String> args) -> command.run(),
-                name, description, Collections.emptyList(), Collections.emptyList());
+                name, description, Collections.emptyList(), Collections.emptyList(), Collections.emptyMap());
     }
 
     static Command makeCommand(CommandWithArgs command, String name, String description,
@@ -78,7 +87,20 @@ public interface Command {
         return makeCommand((Map<String, String> args) -> {
             command.run(args);
             return false;
-        }, name, description, requiredArguments, extraArguments);
+        }, name, description, requiredArguments, extraArguments, Collections.emptyMap());
     }
 
+    static Command makeCommand(FullCommand command, String name, String description,
+                               List<String> requiredArguments, List<String> extraArguments) {
+        return makeCommand(command, name, description, requiredArguments, extraArguments, Collections.emptyMap());
+    }
+
+    static Command makeCommand(CommandWithArgs command, String name, String description,
+                               List<String> requiredArguments, List<String> extraArguments,
+                               Map<String, Supplier<Collection<String>>> validValues) {
+        return makeCommand((Map<String, String> args) -> {
+            command.run(args);
+            return false;
+        }, name, description, requiredArguments, extraArguments, validValues);
+    }
 }

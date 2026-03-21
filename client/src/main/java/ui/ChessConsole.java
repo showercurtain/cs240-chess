@@ -93,7 +93,7 @@ public abstract class ChessConsole implements ChessTerminal {
         running = true;
         while (running) {
             prompting = true;
-            String line = prompt(prompt, false).strip().toLowerCase();
+            String line = prompt(prompt, false).strip();
             prompting = false;
 
             String[] argv = line.split(" ");

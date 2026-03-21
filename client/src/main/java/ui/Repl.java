@@ -18,8 +18,8 @@ public class Repl {
     public Repl(ServerFacade server) throws IOException {
         auth = null;
         this.server = server;
-        this.terminal = new SimpleConsole();
-        //this.terminal = new FancyConsole(false);
+        //this.terminal = new SimpleConsole();
+        this.terminal = new FancyConsole(false);
         terminal.setPrompt("Chess> ");
         terminal.setCommands(getUnauthenticatedCommands());
     }
@@ -98,6 +98,14 @@ public class Repl {
         }
     }
 
+    private Collection<String> getValidGameIds() {
+        ArrayList<String> ids = new ArrayList<>(games.size());
+        for (GameData game : games) {
+            ids.add(Integer.toString(game.gameID()));
+        }
+        return ids;
+    }
+
     private int getGameID(Map<String, String> args) {
         String gameId = args.get("gameID");
         if (gameId == null) {
@@ -140,6 +148,10 @@ public class Repl {
         terminal.displayInfo("Joined successfully!");
     }
 
+    private static Collection<String> getValidSides() {
+        return List.of("white", "black");
+    }
+
     private void createGame(Map<String, String> args) throws ServerException {
         String gameName = args.get("name");
         if (gameName == null) {
@@ -154,15 +166,12 @@ public class Repl {
         if (id == -1) {
             return;
         }
-        games = server.listGames(auth);
-        for (GameData game : games) {
-            if (game.gameID() == id) {
-                terminal.displayInfo(game.toString());
-                terminal.showGame(game, auth.username().equals(game.blackUsername()) ? ChessGame.TeamColor.BLACK : ChessGame.TeamColor.WHITE);
-                return;
-            }
+        Optional<GameData> game = server.listGames(auth).stream().filter(gameData -> gameData.gameID() == id).findFirst();
+        if (game.isPresent()) {
+            terminal.showGame(game.get(), auth.username().equals(game.get().blackUsername()) ? ChessGame.TeamColor.BLACK : ChessGame.TeamColor.WHITE);
+        } else {
+            terminal.displayError("No game with id "+id);
         }
-        terminal.displayError("No game with id "+id);
     }
 
     private List<Command> getUnauthenticatedCommands() {
@@ -175,7 +184,8 @@ public class Repl {
                         Collections.emptyList(), List.of("username", "email")),
                 Command.makeCommand(this::clear, "clear", "DEBUG: Clear the database"),
                 Command.makeCommand(this::test, "test", "DEBUG: Print a test board",
-                        Collections.emptyList(), List.of("color"))
+                        Collections.emptyList(), List.of("color"),
+                        Map.of("color", Repl::getValidSides))
         );
     }
 
@@ -186,11 +196,13 @@ public class Repl {
                 Command.makeCommand(this::logout, "logout", "Log out of Chess"),
                 Command.makeCommand(this::listGames, "list", "List all games"),
                 Command.makeCommand(this::joinGame, "join", "Join a game",
-                        List.of("gameID", "side"), Collections.emptyList()),
+                        List.of("gameID", "side"), Collections.emptyList(),
+                        Map.of("side", Repl::getValidSides, "gameID", this::getValidGameIds)),
                 Command.makeCommand(this::createGame, "create", "Create a game",
                         Collections.emptyList(), List.of("name")),
                 Command.makeCommand(this::observeGame, "observe", "Observe a game",
-                        List.of("gameID"), Collections.emptyList())
+                        List.of("gameID"), Collections.emptyList(),
+                        Map.of("gameID", this::getValidGameIds))
         );
     }
 
