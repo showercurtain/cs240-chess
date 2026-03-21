@@ -1,6 +1,9 @@
 package ui;
 
+import chess.*;
 import client.ServerException;
+import model.GameData;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.List;
@@ -92,6 +95,120 @@ public abstract class ChessConsole implements ChessTerminal {
             } catch (ServerException e) {
                 displayError(e.getMessage());
             }
+        }
+    }
+
+    private static String getPieceString(boolean drawWhite, ChessPiece piece) {
+        boolean outline = drawWhite != (piece.getTeamColor().equals(ChessGame.TeamColor.BLACK));
+        return outline ? switch (piece.getPieceType()) {
+            case KING -> EscapeSequences.WHITE_KING;
+            case QUEEN -> EscapeSequences.WHITE_QUEEN;
+            case BISHOP -> EscapeSequences.WHITE_BISHOP;
+            case KNIGHT -> EscapeSequences.WHITE_KNIGHT;
+            case ROOK -> EscapeSequences.WHITE_ROOK;
+            case PAWN -> EscapeSequences.WHITE_PAWN;
+            case DUMMY -> EscapeSequences.EMPTY;
+        } : switch (piece.getPieceType()) {
+            case KING -> EscapeSequences.BLACK_KING;
+            case QUEEN -> EscapeSequences.BLACK_QUEEN;
+            case BISHOP -> EscapeSequences.BLACK_BISHOP;
+            case KNIGHT -> EscapeSequences.BLACK_KNIGHT;
+            case ROOK -> EscapeSequences.BLACK_ROOK;
+            case PAWN -> EscapeSequences.BLACK_PAWN;
+            case DUMMY -> EscapeSequences.EMPTY;
+        };
+    }
+
+    private void buildChessRow(StringBuilder builder, int row, boolean reverse, AbstractChessBoard board) {
+        builder.append(EscapeSequences.SET_BG_COLOR_LIGHT_GREY);
+        builder.append(EscapeSequences.SET_TEXT_COLOR_BLACK);
+        builder.append(" ").append(row).append(" ");
+        boolean drawWhite = (row%2==1) != reverse;
+        for (int col=1; col<=8; col++) {
+            if (drawWhite) {
+                builder.append(EscapeSequences.SET_BG_COLOR_WHITE);
+                builder.append(EscapeSequences.SET_TEXT_COLOR_BLACK);
+            } else {
+                builder.append(EscapeSequences.SET_BG_COLOR_BLACK);
+                builder.append(EscapeSequences.SET_TEXT_COLOR_WHITE);
+            }
+            ChessPiece piece = board.getPiece(new ChessPosition(row, col));
+            if (piece == null) {
+                builder.append(EscapeSequences.EMPTY);
+            } else {
+                String square = getPieceString(drawWhite, piece);
+                builder.append(square);
+            }
+            drawWhite = !drawWhite;
+        }
+        builder.append(EscapeSequences.SET_BG_COLOR_LIGHT_GREY);
+        builder.append(EscapeSequences.SET_TEXT_COLOR_BLACK);
+        builder.append(" ").append(row).append(" ");
+        builder.append(EscapeSequences.RESET_BG_COLOR);
+        builder.append(EscapeSequences.RESET_TEXT_COLOR);
+        builder.append("\n");
+    }
+
+    private void buildEndRow(StringBuilder builder, boolean reverse) {
+        String letters = "abcdefgh";
+        builder.append(EscapeSequences.SET_BG_COLOR_LIGHT_GREY);
+        builder.append(EscapeSequences.SET_TEXT_COLOR_BLACK);
+        builder.append("   ");
+        if (reverse) {
+            for (int i=7; i>=0; i--) {
+                builder.append(" ").append(letters.charAt(i)).append(" ");
+            }
+        } else {
+            for (int i=0; i<8; i++) {
+                builder.append(" ").append(letters.charAt(i)).append(" ");
+            }
+        }
+        builder.append("   ");
+        builder.append(EscapeSequences.RESET_BG_COLOR);
+        builder.append(EscapeSequences.RESET_TEXT_COLOR);
+        builder.append("\n");
+    }
+
+    private void buildBoard(StringBuilder builder, ChessBoard board, ChessGame.TeamColor side) {
+        boolean reverse = side.equals(ChessGame.TeamColor.BLACK);
+        buildEndRow(builder, reverse);
+        if (reverse) {
+            for (int i=1; i<=8; i++) {
+                buildChessRow(builder, i, true, board);
+            }
+        } else {
+            for (int i=8; i>=1; i--) {
+                buildChessRow(builder, i, false, board);
+            }
+        }
+        buildEndRow(builder, reverse);
+        displayInfo(builder.toString());
+    }
+
+    @Override
+    public void showBoard(ChessBoard board, ChessGame.TeamColor side) {
+        StringBuilder builder = new StringBuilder();
+        buildBoard(builder, board, side);
+        displayInfo(builder.toString());
+    }
+
+    @Override
+    public void showGame(GameData game, ChessGame.TeamColor side) {
+        StringBuilder builder = new StringBuilder();
+        int padding = (30 - game.gameName().length()) / 2;
+        builder.append(String.format("%" + padding + "s\n", game.gameName()));
+        buildBoard(builder, game.game().getBoard(), side);
+        builder.append("White: ");
+        if (game.whiteUsername() == null) {
+            builder.append(EscapeSequences.SET_TEXT_COLOR_BLUE).append("Unclaimed").append(EscapeSequences.RESET_TEXT_COLOR).append("\n");
+        } else {
+            builder.append(game.whiteUsername()).append("\n");
+        }
+        builder.append("Black: ");
+        if (game.whiteUsername() == null) {
+            builder.append(EscapeSequences.SET_TEXT_COLOR_BLUE).append("Unclaimed").append(EscapeSequences.RESET_TEXT_COLOR).append("\n");
+        } else {
+            builder.append(game.blackUsername()).append("\n");
         }
     }
 }

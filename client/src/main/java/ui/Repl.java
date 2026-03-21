@@ -1,5 +1,6 @@
 package ui;
 
+import chess.*;
 import client.ServerException;
 import client.ServerFacade;
 import model.AuthData;
@@ -17,7 +18,6 @@ public class Repl {
     public Repl(ServerFacade server) throws IOException {
         auth = null;
         this.server = server;
-        String classPath = System.getProperty("java.class.path");
         this.terminal = new SimpleConsole();
         //this.terminal = new FancyConsole(false);
         terminal.setPrompt("Chess> ");
@@ -67,6 +67,14 @@ public class Repl {
         setAuth(null);
     }
 
+    private void test(Map<String, String> args) {
+        String arg = args.get("color");
+        ChessGame.TeamColor color = arg == null || !arg.equals("black") ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK;
+        ChessBoard board = new ChessBoard();
+        board.resetBoard();
+        terminal.showBoard(board, color);
+    }
+
     private List<Command> getUnauthenticatedCommands() {
         return List.of(
                 Command.makeCommand(terminal::displayHelp, "help", "Display this help menu"),
@@ -75,7 +83,9 @@ public class Repl {
                         Collections.emptyList(), List.of("username")),
                 Command.makeCommand(this::register, "register", "Create an account",
                         Collections.emptyList(), List.of("username", "email")),
-                Command.makeCommand(this::clear, "clear", "DEBUG: Clear the database")
+                Command.makeCommand(this::clear, "clear", "DEBUG: Clear the database"),
+                Command.makeCommand(this::test, "test", "DEBUG: Print a test board",
+                        Collections.emptyList(), List.of("color"))
         );
     }
 

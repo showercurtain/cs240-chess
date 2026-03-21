@@ -20,16 +20,6 @@ public class SimpleConsole extends ChessConsole {
     }
 
     @Override
-    public void showBoard(ChessBoard board, ChessGame.TeamColor side) {
-        displayInfo("TODO");
-    }
-
-    @Override
-    public void showGame(ChessGame game, ChessGame.TeamColor side) {
-        displayInfo("TODO");
-    }
-
-    @Override
     public void displayError(String message) {
         System.out.println(EscapeSequences.SET_TEXT_COLOR_RED+message+EscapeSequences.RESET_TEXT_COLOR);
     }

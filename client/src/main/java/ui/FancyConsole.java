@@ -39,16 +39,6 @@ public class FancyConsole extends ChessConsole {
     }
 
     @Override
-    public void showBoard(ChessBoard board, ChessGame.TeamColor side) {
-        displayInfo("TODO");
-    }
-
-    @Override
-    public void showGame(ChessGame game, ChessGame.TeamColor side) {
-        displayInfo("TODO");
-    }
-
-    @Override
     public void displayError(String message) {
         if (dummy) {
             displayInfo(message);
