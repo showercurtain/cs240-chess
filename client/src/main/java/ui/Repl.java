@@ -53,7 +53,11 @@ public class Repl {
         if (email == null) {
             email = terminal.prompt("Email: ", false);
         }
-        String password = terminal.prompt("Password: ", true);;
+        String password = terminal.prompt("Password: ", true);
+        while (!password.equals(terminal.prompt("Confirm: ", true))) {
+            terminal.displayError("Passwords do not match");
+            password = terminal.prompt("Password: ", true);
+        }
         setAuth(server.register(username, password, email));
     }
 

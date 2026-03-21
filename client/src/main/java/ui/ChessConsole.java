@@ -37,17 +37,40 @@ public abstract class ChessConsole implements ChessTerminal {
 
     @Override
     public void displayHelp() {
+        int[] lengths = new int[commands.size()];
+        int maxLength = 0;
+        int i = 0;
+        for (Command command : commands.values()) {
+            int length = command.getName().length();
+            for (String arg : command.getRequiredArguments()) {
+                length += 3 + arg.length();
+            }
+            for (String arg : command.getExtraArguments()) {
+                length += 3 + arg.length();
+            }
+            if (length > maxLength) {
+                maxLength = length;
+            }
+            lengths[i] = length;
+            i += 1;
+        }
+
+        i = 0;
         for (Command command : commands.values()) {
             StringBuilder line = new StringBuilder();
-            line.append("  ").append(command.getName());
+            line.append("  ")
+                    .append(EscapeSequences.SET_TEXT_COLOR_BLUE).append(command.getName())
+                    .append(EscapeSequences.RESET_TEXT_COLOR);
             for (String arg : command.getRequiredArguments()) {
                 line.append(" [").append(arg).append("]");
             }
             for (String arg : command.getExtraArguments()) {
                 line.append(" <").append(arg).append(">");
             }
+            line.append(String.format("%" + (maxLength - lengths[i] + 1) + "s",""));
             line.append(": ").append(command.getDescription());
             displayInfo(line.toString());
+            i += 1;
         }
     }
 
@@ -182,7 +205,6 @@ public abstract class ChessConsole implements ChessTerminal {
             }
         }
         buildEndRow(builder, reverse);
-        displayInfo(builder.toString());
     }
 
     @Override
@@ -210,5 +232,6 @@ public abstract class ChessConsole implements ChessTerminal {
         } else {
             builder.append(game.blackUsername()).append("\n");
         }
+        displayInfo(builder.toString());
     }
 }
