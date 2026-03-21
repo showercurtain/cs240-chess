@@ -17,7 +17,9 @@ public class Repl {
     public Repl(ServerFacade server) throws IOException {
         auth = null;
         this.server = server;
-        this.terminal = new SimpleTerminal(false);
+        String classPath = System.getProperty("java.class.path");
+        this.terminal = new SimpleConsole();
+        //this.terminal = new FancyConsole(false);
         terminal.setPrompt("Chess> ");
         terminal.setCommands(getUnauthenticatedCommands());
     }
