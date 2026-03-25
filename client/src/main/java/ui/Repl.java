@@ -18,8 +18,8 @@ public class Repl {
     public Repl(ServerFacade server) throws IOException {
         auth = null;
         this.server = server;
-        //this.terminal = new SimpleConsole();
-        this.terminal = new FancyConsole(false);
+        this.terminal = new SimpleConsole();
+        //this.terminal = new FancyConsole(false);
         terminal.setPrompt("Chess> ");
         terminal.setCommands(getUnauthenticatedCommands());
     }
@@ -40,7 +40,7 @@ public class Repl {
         if (username == null) {
             username = terminal.prompt("Username: ", false);
         }
-        String password = terminal.prompt("Password: ", true);;
+        String password = terminal.prompt("Password: ", true);
         setAuth(server.login(username, password));
     }
 

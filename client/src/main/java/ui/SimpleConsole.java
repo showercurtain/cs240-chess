@@ -1,8 +1,5 @@
 package ui;
 
-import chess.ChessBoard;
-import chess.ChessGame;
-
 import java.util.Scanner;
 
 public class SimpleConsole extends ChessConsole {
