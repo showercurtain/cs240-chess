@@ -1,6 +1,9 @@
 package websocket.messages;
 
+import chess.ChessGame;
+
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Represents a Message the server can send through a WebSocket
@@ -8,8 +11,13 @@ import java.util.Objects;
  * Note: You can add to this class, but you should not alter the existing
  * methods.
  */
-public class ServerMessage {
-    ServerMessageType serverMessageType;
+public record ServerMessage(
+        ServerMessageType serverMessageType,
+        Optional<ChessGame> game,
+        Optional<String> errorMessage,
+        Optional<String> message
+) {
+
 
     public enum ServerMessageType {
         LOAD_GAME,
@@ -17,8 +25,26 @@ public class ServerMessage {
         NOTIFICATION
     }
 
-    public ServerMessage(ServerMessageType type) {
-        this.serverMessageType = type;
+//    public ServerMessage(ServerMessageType type) {
+//        this(type, Optional.empty(), Optional.empty(), Optional.empty());
+//    }
+
+    public ServerMessage(ChessGame game) {
+        this(
+                ServerMessageType.LOAD_GAME,
+                Optional.of(game),
+                Optional.empty(),
+                Optional.empty()
+        );
+    }
+
+    public ServerMessage(String message, boolean error) {
+        this(
+                error ? ServerMessageType.ERROR : ServerMessageType.NOTIFICATION,
+                Optional.empty(),
+                error ? Optional.of(message) : Optional.empty(),
+                error ? Optional.empty() : Optional.of(message)
+        );
     }
 
     public ServerMessageType getServerMessageType() {
