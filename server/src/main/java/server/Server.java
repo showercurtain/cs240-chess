@@ -111,6 +111,8 @@ public class Server {
                         (GenericHandler.BlankEndpoint) miscService::clearDatabase,
                         false
                 ));
+
+        javalin.ws("/ws", new WebsocketHandler(gson));
     }
 
     public int run(int desiredPort) {

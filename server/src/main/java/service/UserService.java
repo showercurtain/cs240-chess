@@ -21,7 +21,7 @@ public class UserService {
 
     public AuthData register(RegisterRequest request) throws ServiceException {
         if (userDAO.getUser(request.username()) != null) {
-            throw new ServiceException("Username already taken").withError(403);
+            throw ServiceException.ALREADY_TAKEN.withMessage("Username already taken");
         }
 
         userDAO.createUser(new UserData(request.username(), request.password(), request.email()));
