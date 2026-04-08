@@ -60,7 +60,11 @@ public class ChessGame {
      */
     public enum TeamColor {
         WHITE,
-        BLACK
+        BLACK;
+
+        public String toString() {
+            return name().toLowerCase();
+        }
     }
 
     private Collection<ChessMove> castleMoves(TeamColor team) {

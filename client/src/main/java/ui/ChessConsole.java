@@ -121,7 +121,7 @@ public abstract class ChessConsole implements ChessTerminal {
     }
 
     private static String getPieceString(boolean drawWhite, ChessPiece piece) {
-        boolean outline = drawWhite != (piece.getTeamColor().equals(ChessGame.TeamColor.BLACK));
+        boolean outline = drawWhite != (piece.getTeamColor().equals(ChessGame.TeamColor.WHITE));
         return outline ? switch (piece.getPieceType()) {
             case KING -> EscapeSequences.WHITE_KING;
             case QUEEN -> EscapeSequences.WHITE_QUEEN;
@@ -148,13 +148,13 @@ public abstract class ChessConsole implements ChessTerminal {
         boolean drawWhite = (row%2==1) != reverse;
         for (int col=1; col<=8; col++) {
             if (drawWhite) {
-                builder.append(EscapeSequences.SET_BG_COLOR_WHITE);
-                builder.append(EscapeSequences.SET_TEXT_COLOR_BLACK);
-            } else {
                 builder.append(EscapeSequences.SET_BG_COLOR_BLACK);
                 builder.append(EscapeSequences.SET_TEXT_COLOR_WHITE);
+            } else {
+                builder.append(EscapeSequences.SET_BG_COLOR_WHITE);
+                builder.append(EscapeSequences.SET_TEXT_COLOR_BLACK);
             }
-            ChessPiece piece = board.getPiece(new ChessPosition(row, col));
+            ChessPiece piece = board.getPiece(new ChessPosition(row, reverse ? (9 -col) : col));
             if (piece == null) {
                 builder.append(EscapeSequences.EMPTY);
             } else {

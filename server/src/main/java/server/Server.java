@@ -11,6 +11,7 @@ import dataaccess.mysql.MySQLUserDAO;
 import io.javalin.*;
 import model.AuthData;
 import model.GsonUtil;
+import server.websocket.WebsocketHandler;
 import service.GameService;
 import service.MiscService;
 import service.UserService;
@@ -112,7 +113,7 @@ public class Server {
                         false
                 ));
 
-        javalin.ws("/ws", new WebsocketHandler(gson));
+        javalin.ws("/ws", new WebsocketHandler(gson, authDAO, gameDAO));
     }
 
     public int run(int desiredPort) {

@@ -13,7 +13,7 @@ public class Repl {
     AuthData auth;
     ServerFacade server;
     ChessTerminal terminal;
-    Collection<GameData> games;
+    List<GameData> games;
 
     public Repl(ServerFacade server) throws IOException {
         auth = null;
@@ -22,6 +22,7 @@ public class Repl {
         //this.terminal = new FancyConsole(false);
         terminal.setPrompt("Chess> ");
         terminal.setCommands(getUnauthenticatedCommands());
+        this.games = Collections.emptyList();
     }
 
     private void setAuth(AuthData auth) {
@@ -80,7 +81,7 @@ public class Repl {
     }
 
     private void listGames() throws ServerException {
-        games = server.listGames(auth);
+        games = server.listGames(auth).stream().toList();
         if (games.isEmpty()) {
             terminal.displayInfo("No games yet!");
             return;
@@ -119,7 +120,11 @@ public class Repl {
             terminal.displayError("Invalid gameID "+gameId);
             return -1;
         }
-        return id;
+        if (id < 1 || id > games.size()) {
+            terminal.displayError("Invalid gameID "+gameId);
+            return -1;
+        }
+        return games.get(id-1).gameID();
     }
 
     private void joinGame(Map<String, String> args) throws ServerException {
@@ -146,6 +151,8 @@ public class Repl {
         }
         server.joinGame(auth, color, id);
         terminal.displayInfo("Joined successfully!");
+        GameData game = games.stream().filter(g -> g.gameID() == id).findFirst().get();
+        terminal.showBoard(game.game().getBoard(), color);
     }
 
     private static Collection<String> getValidSides() {
@@ -168,7 +175,7 @@ public class Repl {
         }
         Optional<GameData> game = server.listGames(auth).stream().filter(gameData -> gameData.gameID() == id).findFirst();
         if (game.isPresent()) {
-            terminal.showGame(game.get(), auth.username().equals(game.get().blackUsername()) ? ChessGame.TeamColor.BLACK : ChessGame.TeamColor.WHITE);
+            terminal.showGame(game.get(), ChessGame.TeamColor.WHITE);
         } else {
             terminal.displayError("No game with id "+id);
         }
