@@ -15,6 +15,6 @@ public class ServerMain {
         Server server = new Server();
 
         int port = server.run(requestedPort);
-        System.out.printf("Server started on port %d", port);
+        System.out.printf("Server started on port %d\n", port);
     }
 }

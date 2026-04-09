@@ -5,6 +5,8 @@ import client.ServerException;
 import client.ServerFacade;
 import model.AuthData;
 import model.GameData;
+import websocket.commands.UserGameCommand;
+import websocket.messages.ServerMessage;
 
 import java.io.IOException;
 import java.util.*;
@@ -14,6 +16,12 @@ public class Repl {
     ServerFacade server;
     ChessTerminal terminal;
     List<GameData> games;
+
+    final Object lock = new Object();
+    int gameID;
+    ChessGame state;
+    boolean playing;
+    ChessGame.TeamColor team;
 
     public Repl(ServerFacade server) throws IOException {
         auth = null;
@@ -107,29 +115,29 @@ public class Repl {
         return ids;
     }
 
-    private int getGameID(Map<String, String> args) {
+    private GameData getGame(Map<String, String> args) {
         String gameId = args.get("gameID");
         if (gameId == null) {
             terminal.displayError("Game ID is required!");
-            return -1;
+            return null;
         }
         int id;
         try {
             id = Integer.parseInt(gameId);
         } catch (NumberFormatException e) {
             terminal.displayError("Invalid gameID "+gameId);
-            return -1;
+            return null;
         }
         if (id < 1 || id > games.size()) {
             terminal.displayError("Invalid gameID "+gameId);
-            return -1;
+            return null;
         }
-        return games.get(id-1).gameID();
+        return games.get(id-1);
     }
 
     private void joinGame(Map<String, String> args) throws ServerException {
-        int id = getGameID(args);
-        if (id == -1) {
+        model.GameData game = getGame(args);
+        if (game == null) {
             return;
         }
         String side = args.get("side");
@@ -149,10 +157,20 @@ public class Repl {
         if (color == null) {
             return;
         }
-        server.joinGame(auth, color, id);
-        terminal.displayInfo("Joined successfully!");
-        GameData game = games.stream().filter(g -> g.gameID() == id).findFirst().get();
-        terminal.showBoard(game.game().getBoard(), color);
+        server.joinGame(auth, color, game.gameID());
+        synchronized (lock) {
+            gameID = game.gameID();
+            state = game.game();
+            terminal.displayInfo("Joined successfully!");
+            server.connectWebsocket(this::handleServerMessage);
+            server.wsCommand(UserGameCommand.CommandType.CONNECT, auth, gameID, null);
+            //terminal.showBoard(state.getBoard(), color);
+            playing = true;
+            team = color;
+        }
+
+        terminal.setCommands(getInGameCommands());
+        terminal.setPrompt(game.gameName() + "> ");
     }
 
     private static Collection<String> getValidSides() {
@@ -169,16 +187,58 @@ public class Repl {
     }
 
     private void observeGame(Map<String, String> args) throws ServerException {
-        int id = getGameID(args);
-        if (id == -1) {
+        GameData game = getGame(args);
+        if (game == null) {
             return;
         }
-        Optional<GameData> game = server.listGames(auth).stream().filter(gameData -> gameData.gameID() == id).findFirst();
-        if (game.isPresent()) {
-            terminal.showGame(game.get(), ChessGame.TeamColor.WHITE);
-        } else {
-            terminal.displayError("No game with id "+id);
+
+        synchronized (lock) {
+            gameID = game.gameID();
+            state = game.game();
+            terminal.displayInfo("Joined successfully!");
+            server.connectWebsocket(this::handleServerMessage);
+            server.wsCommand(UserGameCommand.CommandType.CONNECT, auth, gameID, null);
+            //terminal.showGame(game, ChessGame.TeamColor.WHITE);
+            playing = false;
+            team = ChessGame.TeamColor.WHITE;
         }
+
+        terminal.setCommands(getObserverCommands());
+        terminal.setPrompt(game.gameName() + "> ");
+    }
+
+    private void handleServerMessage(ServerMessage message) {
+        switch (message.getServerMessageType()) {
+            case LOAD_GAME -> {
+                synchronized (lock) {
+                    if (state == null) {
+                        return;
+                    }
+                    state = message.game().orElse(state);
+                    terminal.showBoard(state.getBoard(), team);
+                }
+            }
+            case ERROR -> {
+                terminal.displayError(message.errorMessage().orElse("Unknown server error"));
+            }
+            case NOTIFICATION -> {
+                terminal.displayInfo(message.message().orElse("The server is broken :D"));
+            }
+        }
+    }
+
+    private void leaveGame() throws ServerException {
+        synchronized (lock) {
+            if (state == null) {
+                terminal.displayError("Not in a game");
+                return;
+            }
+            server.wsCommand(UserGameCommand.CommandType.LEAVE, auth, gameID, null);
+            server.closeWebsocket();
+            state = null;
+        }
+        terminal.setCommands(getAuthenticatedCommands());
+        terminal.setPrompt("Chess [" + auth.username() + "]> ");
     }
 
     private List<Command> getUnauthenticatedCommands() {
@@ -210,6 +270,20 @@ public class Repl {
                 Command.makeCommand(this::observeGame, "observe", "Observe a game",
                         List.of("gameID"), Collections.emptyList(),
                         Map.of("gameID", this::getValidGameIds))
+        );
+    }
+
+    private List<Command> getInGameCommands() {
+        return List.of(
+                Command.makeCommand(terminal::displayHelp, "help", "Display this help menu"),
+                Command.makeCommand(this::leaveGame, "leave", "Leave the game you are in")
+        );
+    }
+
+    private List<Command> getObserverCommands() {
+        return List.of(
+                Command.makeCommand(terminal::displayHelp, "help", "Display this help menu"),
+                Command.makeCommand(this::leaveGame, "leave", "Leave the game you are observing")
         );
     }
 

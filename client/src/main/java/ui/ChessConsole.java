@@ -207,15 +207,13 @@ public abstract class ChessConsole implements ChessTerminal {
     }
 
     @Override
-    public void showBoard(ChessBoard board, ChessGame.TeamColor side) {
+    public String genBoard(ChessBoard board, ChessGame.TeamColor side) {
         StringBuilder builder = new StringBuilder();
         buildBoard(builder, board, side);
-        displayInfo(builder.toString());
+        return builder.toString();
     }
 
-    @Override
-    public void showGame(GameData game, ChessGame.TeamColor side) {
-        StringBuilder builder = new StringBuilder();
+    private void buildGame(StringBuilder builder, GameData game, ChessGame.TeamColor side) {
         int padding = (30 + game.gameName().length()) / 2;
         builder.append(String.format("%" + padding + "s\n", game.gameName()));
         buildBoard(builder, game.game().getBoard(), side);
@@ -231,6 +229,12 @@ public abstract class ChessConsole implements ChessTerminal {
         } else {
             builder.append(game.blackUsername()).append("\n");
         }
+    }
+
+    @Override
+    public void showGame(GameData game, ChessGame.TeamColor side) {
+        StringBuilder builder = new StringBuilder();
+        buildGame(builder, game, side);
         displayInfo(builder.toString());
     }
 }

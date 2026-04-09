@@ -33,6 +33,7 @@ public class NullCheckTypeAdapterFactory implements TypeAdapterFactory {
             @Override
             public T read(JsonReader jsonReader) throws IOException {
                 T out = delegate.read(jsonReader);
+                if (out == null) return null;
                 for (RecordComponent field : rawType.getRecordComponents()) {
                     try {
                         Object value = field.getAccessor().invoke(out);

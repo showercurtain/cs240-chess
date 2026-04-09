@@ -1,34 +1,44 @@
 package client;
 
 import chess.ChessGame;
+import chess.ChessMove;
 import com.google.gson.Gson;
+import jakarta.websocket.*;
 import model.AuthData;
 import model.GameData;
 import model.GsonUtil;
+import websocket.commands.UserGameCommand;
+import websocket.messages.ServerMessage;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Consumer;
 
 public class ServerFacade {
     public record HttpError(String message) {}
 
     private static final Duration TIMEOUT = Duration.ofSeconds(5);
     private final HttpClient httpClient = HttpClient.newHttpClient();
-    private final Gson gson = GsonUtil.buildGson();
-    private final URI serverURI;
+    private final Gson gson = GsonUtil.buildRelaxedGson();
+    private final URI serverHttpURI;
+    private final URI serverWsURI;
+    private Session session;
 
-    public ServerFacade(URI serverURI) {
-        this.serverURI = serverURI;
+    public ServerFacade(String serverURI) throws URISyntaxException {
+        this.serverHttpURI = new URI("http://"+serverURI);
+        this.serverWsURI = new URI("ws://" + serverURI);
     }
 
     private <U, T> T makeRequest(String url, String method, AuthData auth, U request, Class<T> responseClass) throws ServerException {
-        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder(serverURI.resolve(url))
+        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder(serverHttpURI.resolve(url))
                 .timeout(TIMEOUT);
         if (auth != null) {
             requestBuilder.header("authorization", auth.authToken());
@@ -94,5 +104,46 @@ public class ServerFacade {
 
     public void joinGame(AuthData auth, ChessGame.TeamColor playerColor, int gameID) throws ServerException {
         makeRequest("/game", "PUT", auth, Map.of("playerColor", playerColor, "gameID", gameID), null);
+    }
+
+    public void connectWebsocket(Consumer<ServerMessage> handler) throws ServerException {
+        WebSocketContainer container = ContainerProvider.getWebSocketContainer();
+        try {
+            session = container.connectToServer(new Endpoint() {
+                @Override
+                public void onOpen(Session session, EndpointConfig endpointConfig) {
+                    session.addMessageHandler(String.class, msg -> {
+                        ServerMessage message = gson.fromJson(msg, ServerMessage.class);
+                        handler.accept(message);
+                    });
+                }
+            }, serverWsURI.resolve("/ws"));
+        } catch (IOException e) {
+            throw new ServerException(e.getMessage(),400);
+        } catch (DeploymentException e) {
+            throw new ServerException(e.getMessage(),500);
+        }
+    }
+
+    public void closeWebsocket() throws ServerException {
+        try {
+            session.close();
+            session = null;
+        } catch (IOException e) {
+            throw new ServerException(e.getMessage(),400);
+        }
+    }
+
+    public void wsCommand(UserGameCommand.CommandType command, AuthData auth, int gameID, ChessMove move) throws ServerException {
+        if (session != null && session.isOpen()) {
+            UserGameCommand message = new UserGameCommand(
+                    command, auth.authToken(), gameID, Optional.ofNullable(move)
+            );
+            try {
+                session.getBasicRemote().sendText(gson.toJson(message));
+            } catch (IOException e) {
+                throw new ServerException(e.getMessage(), 400);
+            }
+        }
     }
 }

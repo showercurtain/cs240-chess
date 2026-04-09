@@ -14,6 +14,7 @@ public class OptionalCodec<T>
             throws JsonParseException {
         final JsonArray asJsonArray = json.getAsJsonArray();
         final JsonElement jsonElement = asJsonArray.get(0);
+        if (jsonElement == null) return Optional.empty();
         final T value = context.deserialize(jsonElement, ((ParameterizedType) typeOfT).getActualTypeArguments()[0]);
         return Optional.ofNullable(value);
     }

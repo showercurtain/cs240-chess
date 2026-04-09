@@ -78,6 +78,7 @@ public class WebsocketHandler implements Consumer<WsConfig> {
         if (auth == null) {
             return;
         }
+        System.out.println("Received message of type " + command.commandType());
         AtomicReference<ServerMessage> res = new AtomicReference<>();
         games.compute(command.gameID(), (id, game) -> {
             GameData gameData;
@@ -102,7 +103,8 @@ public class WebsocketHandler implements Consumer<WsConfig> {
         });
 
         if (res.get() != null) {
-            ctx.send(gson.toJson(res));
+            System.out.println("Sending message of type " + res.get().getServerMessageType());
+            ctx.send(gson.toJson(res.get()));
         }
     }
 
