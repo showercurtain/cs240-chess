@@ -4,11 +4,15 @@ import chess.*;
 import client.ServerException;
 import model.GameData;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public abstract class ChessConsole implements ChessTerminal {
+    private enum HighlightType {
+        None,
+        Selected,
+        Valid;
+    }
+
     String prompt;
     Map<String, Command> commands;
     boolean running;
@@ -41,10 +45,10 @@ public abstract class ChessConsole implements ChessTerminal {
         int i = 0;
         for (Command command : commands.values()) {
             int length = command.getName().length();
-            for (String arg : command.getRequiredArguments()) {
+            for (String arg : command.getRequiredParameters()) {
                 length += 3 + arg.length();
             }
-            for (String arg : command.getExtraArguments()) {
+            for (String arg : command.getExtraParameters()) {
                 length += 3 + arg.length();
             }
             if (length > maxLength) {
@@ -60,10 +64,10 @@ public abstract class ChessConsole implements ChessTerminal {
             line.append("  ")
                     .append(EscapeSequences.SET_TEXT_COLOR_BLUE).append(command.getName())
                     .append(EscapeSequences.RESET_TEXT_COLOR);
-            for (String arg : command.getRequiredArguments()) {
+            for (String arg : command.getRequiredParameters()) {
                 line.append(" [").append(arg).append("]");
             }
-            for (String arg : command.getExtraArguments()) {
+            for (String arg : command.getExtraParameters()) {
                 line.append(" <").append(arg).append(">");
             }
             line.append(String.format("%" + (maxLength - lengths[i] + 1) + "s",""));
@@ -75,12 +79,12 @@ public abstract class ChessConsole implements ChessTerminal {
 
     private static HashMap<String, String> genArguments(Command command, String[] argv) {
         HashMap<String, String> args = new HashMap<>();
-        List<String> requiredArguments = command.getRequiredArguments();
+        List<String> requiredArguments = command.getRequiredParameters();
         int i;
         for (i = 1; i <= requiredArguments.size(); i++) {
             args.put(requiredArguments.get(i-1), argv[i]);
         }
-        List<String> extraArguments = command.getExtraArguments();
+        List<String> extraArguments = command.getExtraParameters();
         int end = Math.min(requiredArguments.size() + extraArguments.size(), argv.length-1);
         for (; i <= end; i++) {
             args.put(extraArguments.get(i-1), argv[i]);
@@ -91,25 +95,32 @@ public abstract class ChessConsole implements ChessTerminal {
     @Override
     public void loop() {
         running = true;
+        repl:
         while (running) {
             prompting = true;
             String line = prompt(prompt, false).strip();
             prompting = false;
 
-            String[] argv = line.split(" ");
+            String[] argv = line.split("\\s+");
 
             Command command = commands.get(argv[0]);
             if (command == null) {
                 displayError("Invalid command: " + argv[0]);
                 continue;
-            } else if (argv.length <= command.getRequiredArguments().size()) {
+            } else if (argv.length <= command.getRequiredParameters().size()) {
                 displayError("Not enough arguments. Expected "
-                        + command.getRequiredArguments().size()
+                        + command.getRequiredParameters().size()
                         + " arguments, got "
                         + (argv.length - 1));
                 continue;
             }
             HashMap<String, String> args = genArguments(command, argv);
+            for (String param : command.getRequiredParameters()) {
+                if (!command.getValidValues(args, param).contains(args.get(param))) {
+                    displayError("Parameter " + param + " is invalid");
+                    continue repl;
+                }
+            }
             try {
                 if (command.execute(args)) {
                     break;
@@ -120,8 +131,8 @@ public abstract class ChessConsole implements ChessTerminal {
         }
     }
 
-    private static String getPieceString(boolean drawWhite, ChessPiece piece) {
-        boolean outline = drawWhite != (piece.getTeamColor().equals(ChessGame.TeamColor.WHITE));
+    private static String getPieceString(boolean outline, ChessPiece piece) {
+        if (piece == null) return EscapeSequences.EMPTY;
         return outline ? switch (piece.getPieceType()) {
             case KING -> EscapeSequences.WHITE_KING;
             case QUEEN -> EscapeSequences.WHITE_QUEEN;
@@ -141,31 +152,47 @@ public abstract class ChessConsole implements ChessTerminal {
         };
     }
 
-    private void buildChessRow(StringBuilder builder, int row, boolean reverse, AbstractChessBoard board) {
+    private static void buildPieceString(StringBuilder builder, boolean drawWhite, HighlightType highlight, ChessPiece piece) {
+        builder.append(switch (highlight) {
+            case None -> drawWhite ? EscapeSequences.SET_BG_COLOR_BLACK : EscapeSequences.SET_BG_COLOR_WHITE;
+            case Selected -> EscapeSequences.SET_BG_COLOR_BLUE;
+            case Valid -> drawWhite ? EscapeSequences.SET_BG_COLOR_DARK_GREEN : EscapeSequences.SET_BG_COLOR_GREEN;
+        });
+
+        if (piece != null) {
+            boolean outline = drawWhite != (piece.getTeamColor().equals(ChessGame.TeamColor.WHITE));
+            builder.append(switch (highlight) {
+                case None, Valid ->
+                        drawWhite ? EscapeSequences.SET_TEXT_COLOR_WHITE : EscapeSequences.SET_TEXT_COLOR_BLACK;
+                case Selected -> {
+                    outline = false;
+                    yield piece.getTeamColor().equals(ChessGame.TeamColor.WHITE) ?
+                            EscapeSequences.SET_TEXT_COLOR_WHITE : EscapeSequences.SET_TEXT_COLOR_BLACK;
+                }
+            });
+            builder.append(getPieceString(outline, piece));
+        } else {
+            builder.append(EscapeSequences.EMPTY);
+        }
+    }
+
+    private static void buildChessRow(StringBuilder builder, int row, boolean reverse,
+                                      AbstractChessBoard board, HashSet<ChessPosition> validMoves, ChessPosition from) {
         builder.append(EscapeSequences.SET_BG_COLOR_LIGHT_GREY);
         builder.append(EscapeSequences.SET_TEXT_COLOR_BLACK);
-        builder.append(" ").append(row).append(" ");
+        builder.append(" ").append(reverse ? row : (9 - row)).append(" ");
         boolean drawWhite = (row%2==1) != reverse;
         for (int col=1; col<=8; col++) {
-            if (drawWhite) {
-                builder.append(EscapeSequences.SET_BG_COLOR_BLACK);
-                builder.append(EscapeSequences.SET_TEXT_COLOR_WHITE);
-            } else {
-                builder.append(EscapeSequences.SET_BG_COLOR_WHITE);
-                builder.append(EscapeSequences.SET_TEXT_COLOR_BLACK);
-            }
-            ChessPiece piece = board.getPiece(new ChessPosition(row, reverse ? (9 -col) : col));
-            if (piece == null) {
-                builder.append(EscapeSequences.EMPTY);
-            } else {
-                String square = getPieceString(drawWhite, piece);
-                builder.append(square);
-            }
+            ChessPosition pos = new ChessPosition(reverse ? row : (9 - row), reverse ? (9 - col) : col);
+            ChessPiece piece = board.getPiece(pos);
+            buildPieceString(builder, drawWhite,
+                    pos.equals(from) ? HighlightType.Selected : validMoves.contains(pos) ? HighlightType.Valid : HighlightType.None
+                    , piece);
             drawWhite = !drawWhite;
         }
         builder.append(EscapeSequences.SET_BG_COLOR_LIGHT_GREY);
         builder.append(EscapeSequences.SET_TEXT_COLOR_BLACK);
-        builder.append(" ").append(row).append(" ");
+        builder.append(" ").append(reverse ? row : (9 - row)).append(" ");
         builder.append(EscapeSequences.RESET_BG_COLOR);
         builder.append(EscapeSequences.RESET_TEXT_COLOR);
         builder.append("\n");
@@ -191,32 +218,32 @@ public abstract class ChessConsole implements ChessTerminal {
         builder.append("\n");
     }
 
-    private void buildBoard(StringBuilder builder, ChessBoard board, ChessGame.TeamColor side) {
+    private void buildBoard(StringBuilder builder, ChessGame game, ChessGame.TeamColor side, ChessPosition highlight) {
         boolean reverse = side.equals(ChessGame.TeamColor.BLACK);
         buildEndRow(builder, reverse);
-        if (reverse) {
-            for (int i=1; i<=8; i++) {
-                buildChessRow(builder, i, true, board);
+        HashSet<ChessPosition> validMoves = new HashSet<>();
+        if (highlight != null) {
+            for (ChessMove move : game.validMoves(highlight)) {
+                validMoves.add(move.endPosition());
             }
-        } else {
-            for (int i=8; i>=1; i--) {
-                buildChessRow(builder, i, false, board);
-            }
+        }
+        for (int i=1; i<=8; i++) {
+            buildChessRow(builder, i, reverse, game.getBoard(), validMoves, highlight);
         }
         buildEndRow(builder, reverse);
     }
 
     @Override
-    public String genBoard(ChessBoard board, ChessGame.TeamColor side) {
+    public String genBoard(ChessGame game, ChessGame.TeamColor side, ChessPosition highlight) {
         StringBuilder builder = new StringBuilder();
-        buildBoard(builder, board, side);
+        buildBoard(builder, game, side, highlight);
         return builder.toString();
     }
 
     private void buildGame(StringBuilder builder, GameData game, ChessGame.TeamColor side) {
         int padding = (30 + game.gameName().length()) / 2;
         builder.append(String.format("%" + padding + "s\n", game.gameName()));
-        buildBoard(builder, game.game().getBoard(), side);
+        buildBoard(builder, game.game(), side, null);
         builder.append("White: ");
         if (game.whiteUsername() == null) {
             builder.append(EscapeSequences.SET_TEXT_COLOR_BLUE).append("Unclaimed").append(EscapeSequences.RESET_TEXT_COLOR).append("\n");

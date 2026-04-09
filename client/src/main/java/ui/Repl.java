@@ -10,6 +10,7 @@ import websocket.messages.ServerMessage;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Repl {
     AuthData auth;
@@ -80,14 +81,6 @@ public class Repl {
         setAuth(null);
     }
 
-    private void test(Map<String, String> args) {
-        String arg = args.get("color");
-        ChessGame.TeamColor color = arg == null || !arg.equals("black") ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK;
-        ChessBoard board = new ChessBoard();
-        board.resetBoard();
-        terminal.showBoard(board, color);
-    }
-
     private void listGames() throws ServerException {
         games = server.listGames(auth).stream().toList();
         if (games.isEmpty()) {
@@ -107,7 +100,7 @@ public class Repl {
         }
     }
 
-    private Collection<String> getValidGameIds() {
+    private Collection<String> getValidGameIds(Map<String, String> args) {
         ArrayList<String> ids = new ArrayList<>(games.size());
         for (GameData game : games) {
             ids.add(Integer.toString(game.gameID()));
@@ -117,18 +110,10 @@ public class Repl {
 
     private GameData getGame(Map<String, String> args) {
         String gameId = args.get("gameID");
-        if (gameId == null) {
-            terminal.displayError("Game ID is required!");
-            return null;
-        }
         int id;
         try {
             id = Integer.parseInt(gameId);
         } catch (NumberFormatException e) {
-            terminal.displayError("Invalid gameID "+gameId);
-            return null;
-        }
-        if (id < 1 || id > games.size()) {
             terminal.displayError("Invalid gameID "+gameId);
             return null;
         }
@@ -141,10 +126,6 @@ public class Repl {
             return;
         }
         String side = args.get("side");
-        if (side == null) {
-            terminal.displayError("Side is required!");
-            return;
-        }
         ChessGame.TeamColor color = switch (side.toLowerCase()) {
             case "white" -> ChessGame.TeamColor.WHITE;
             case "black" -> ChessGame.TeamColor.BLACK;
@@ -173,8 +154,19 @@ public class Repl {
         terminal.setPrompt(game.gameName() + "> ");
     }
 
-    private static Collection<String> getValidSides() {
-        return List.of("white", "black");
+    private Collection<String> getValidSides(Map<String, String> args) {
+        GameData game = getGame(args);
+        if (game == null) {
+            return List.of("white", "black");
+        }
+        ArrayList<String> sides = new ArrayList<>(2);
+        if (game.whiteUsername() == null) {
+            sides.add("white");
+        }
+        if (game.blackUsername() == null) {
+            sides.add("black");
+        }
+        return sides;
     }
 
     private void createGame(Map<String, String> args) throws ServerException {
@@ -215,7 +207,7 @@ public class Repl {
                         return;
                     }
                     state = message.game().orElse(state);
-                    terminal.showBoard(state.getBoard(), team);
+                    terminal.showBoard(state, team, null);
                 }
             }
             case ERROR -> {
@@ -241,6 +233,20 @@ public class Repl {
         terminal.setPrompt("Chess [" + auth.username() + "]> ");
     }
 
+    private void redrawBoard() {
+        terminal.showBoard(state, team, null);
+    }
+
+    private Collection<String> getValidHighlights(Map<String, String> args) {
+        return state.getBoard().getPieces().keySet().stream().map(ChessPosition::toString).collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    private void highlight(Map<String, String> args) {
+        String pos = args.get("position");
+        ChessPosition position = ChessPosition.fromString(pos);
+        terminal.showBoard(state, team, position);
+    }
+
     private List<Command> getUnauthenticatedCommands() {
         return List.of(
                 Command.makeCommand(terminal::displayHelp, "help", "Display this help menu"),
@@ -249,10 +255,7 @@ public class Repl {
                         Collections.emptyList(), List.of("username")),
                 Command.makeCommand(this::register, "register", "Create an account",
                         Collections.emptyList(), List.of("username", "email")),
-                Command.makeCommand(this::clear, "clear", "DEBUG: Clear the database"),
-                Command.makeCommand(this::test, "test", "DEBUG: Print a test board",
-                        Collections.emptyList(), List.of("color"),
-                        Map.of("color", Repl::getValidSides))
+                Command.makeCommand(this::clear, "clear", "DEBUG: Clear the database")
         );
     }
 
@@ -264,7 +267,7 @@ public class Repl {
                 Command.makeCommand(this::listGames, "list", "List all games"),
                 Command.makeCommand(this::joinGame, "join", "Join a game",
                         List.of("gameID", "side"), Collections.emptyList(),
-                        Map.of("side", Repl::getValidSides, "gameID", this::getValidGameIds)),
+                        Map.of("side", this::getValidSides, "gameID", this::getValidGameIds)),
                 Command.makeCommand(this::createGame, "create", "Create a game",
                         Collections.emptyList(), List.of("name")),
                 Command.makeCommand(this::observeGame, "observe", "Observe a game",
@@ -276,13 +279,18 @@ public class Repl {
     private List<Command> getInGameCommands() {
         return List.of(
                 Command.makeCommand(terminal::displayHelp, "help", "Display this help menu"),
-                Command.makeCommand(this::leaveGame, "leave", "Leave the game you are in")
+                Command.makeCommand(this::redrawBoard, "redraw", "Redraws the current chess board"),
+                Command.makeCommand(this::leaveGame, "leave", "Leave the game you are in"),
+                Command.makeCommand(this::highlight, "highlight", "Highlight valid moves for a piece",
+                        List.of("position"), Collections.emptyList(),
+                        Map.of("position", this::getValidHighlights))
         );
     }
 
     private List<Command> getObserverCommands() {
         return List.of(
                 Command.makeCommand(terminal::displayHelp, "help", "Display this help menu"),
+                Command.makeCommand(this::redrawBoard, "redraw", "Redraws the current chess board"),
                 Command.makeCommand(this::leaveGame, "leave", "Leave the game you are observing")
         );
     }
