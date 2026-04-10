@@ -47,6 +47,10 @@ public record ServerMessage(
         );
     }
 
+    public ServerMessage(String message) {
+        this(message, false);
+    }
+
     public ServerMessageType getServerMessageType() {
         return this.serverMessageType;
     }

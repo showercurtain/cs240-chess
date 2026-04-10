@@ -143,9 +143,13 @@ public class Repl {
             gameID = game.gameID();
             state = game.game();
             terminal.displayInfo("Joined successfully!");
+            terminal.showGame(new GameData(0,
+                    color == ChessGame.TeamColor.WHITE ? auth.username() : game.whiteUsername(),
+                    color == ChessGame.TeamColor.BLACK ? auth.username() : game.blackUsername(),
+                    game.gameName(),
+                    game.game()), color);
             server.connectWebsocket(this::handleServerMessage);
             server.wsCommand(UserGameCommand.CommandType.CONNECT, auth, gameID, null);
-            //terminal.showBoard(state.getBoard(), color);
             playing = true;
             team = color;
         }
@@ -190,7 +194,7 @@ public class Repl {
             terminal.displayInfo("Joined successfully!");
             server.connectWebsocket(this::handleServerMessage);
             server.wsCommand(UserGameCommand.CommandType.CONNECT, auth, gameID, null);
-            //terminal.showGame(game, ChessGame.TeamColor.WHITE);
+            terminal.showGame(game, ChessGame.TeamColor.WHITE);
             playing = false;
             team = ChessGame.TeamColor.WHITE;
         }

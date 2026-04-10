@@ -10,7 +10,7 @@ public abstract class ChessConsole implements ChessTerminal {
     private enum HighlightType {
         None,
         Selected,
-        Valid;
+        Valid
     }
 
     String prompt;
@@ -242,8 +242,10 @@ public abstract class ChessConsole implements ChessTerminal {
 
     private void buildGame(StringBuilder builder, GameData game, ChessGame.TeamColor side) {
         int padding = (30 + game.gameName().length()) / 2;
+        builder.append(EscapeSequences.SET_TEXT_BOLD);
         builder.append(String.format("%" + padding + "s\n", game.gameName()));
-        buildBoard(builder, game.game(), side, null);
+        builder.append(EscapeSequences.RESET_TEXT_BOLD_FAINT);
+        //buildBoard(builder, game.game(), side, null);
         builder.append("White: ");
         if (game.whiteUsername() == null) {
             builder.append(EscapeSequences.SET_TEXT_COLOR_BLUE).append("Unclaimed").append(EscapeSequences.RESET_TEXT_COLOR).append("\n");

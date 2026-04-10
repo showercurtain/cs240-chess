@@ -1,27 +1,32 @@
 package server.websocket;
 
 import chess.ChessGame;
+import com.google.gson.Gson;
+import dataaccess.GameDAO;
 import model.GameData;
 import org.eclipse.jetty.websocket.api.Session;
+import service.ServiceException;
 import websocket.commands.UserGameCommand;
 import websocket.messages.ServerMessage;
 
 import java.io.IOException;
 import java.util.HashSet;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class ActiveGame {
     Session white;
     String whiteUsername;
     Session black;
     String blackUsername;
-    HashSet<Session> observers;
+    Gson gson;
+    GameDAO gameDAO;
+    final HashSet<Session> observers;
 
-    public ActiveGame() {
+    public ActiveGame(Gson gson, GameDAO gameDAO) {
         white = null;
         black = null;
         observers = new HashSet<>();
+        this.gson = gson;
+        this.gameDAO = gameDAO;
     }
 
     private static void trySend(Session to, String message) {
@@ -34,21 +39,36 @@ public class ActiveGame {
         }
     }
 
-    private void announce(String message, ChessGame.TeamColor from) {
+    private void trySend(Session to, ServerMessage message) {
+        trySend(to, gson.toJson(message));
+    }
+
+    private void updateDatabase(GameData gameData, ChessGame game, Session feedback) {
+        try {
+            gameDAO.updateGame(new GameData(
+                    gameData.gameID(),
+                    whiteUsername,
+                    blackUsername,
+                    gameData.gameName(),
+                    game
+            ));
+        } catch (ServiceException e) {
+            trySend(feedback, new ServerMessage(e.getMessage(), true));
+        }
+    }
+
+    private void announce(ServerMessage message, ChessGame.TeamColor from) {
+        String text = gson.toJson(message);
         if (from == null) {
-            trySend(white, message);
-            trySend(black, message);
+            trySend(white, text);
+            trySend(black, text);
         } else {
             Session recipient = from == ChessGame.TeamColor.WHITE ? white : black;
-            trySend(recipient, message);
+            trySend(recipient, text);
         }
 
         observers.forEach(session -> {
-            try {
-                session.getRemote().sendString(message);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            trySend(session, text);
         });
     }
 
@@ -66,7 +86,7 @@ public class ActiveGame {
         if (this.white == null || !this.white.isOpen()) {
             this.white = white;
             whiteUsername = username;
-            announce(username + " joined the game as white", ChessGame.TeamColor.WHITE);
+            announce(new ServerMessage(username + " joined the game as white"), ChessGame.TeamColor.WHITE);
             return true;
         }
         return false;
@@ -76,7 +96,7 @@ public class ActiveGame {
         if (this.black == null || !this.black.isOpen()) {
             this.black = black;
             blackUsername = username;
-            announce(username + " joined the game as black", ChessGame.TeamColor.BLACK);
+            announce(new ServerMessage(username + " joined the game as black"), ChessGame.TeamColor.BLACK);
             return true;
         }
         return false;
@@ -87,7 +107,7 @@ public class ActiveGame {
         if (this.black == null && observers.isEmpty()) {
             return true;
         } else {
-            announce(whiteUsername + " left the game", ChessGame.TeamColor.WHITE);
+            announce(new ServerMessage(whiteUsername + " left the game"), ChessGame.TeamColor.WHITE);
             return false;
         }
     }
@@ -97,12 +117,17 @@ public class ActiveGame {
         if (this.white == null && observers.isEmpty()) {
             return true;
         } else {
-            announce(blackUsername + " left the game", ChessGame.TeamColor.BLACK);
+            announce(new ServerMessage(blackUsername + " left the game"), ChessGame.TeamColor.BLACK);
             return false;
         }
     }
 
-    public ActiveGame handleCommand(UserGameCommand command, Session session, String username, GameData game, AtomicReference<ServerMessage> res) {
+    public ActiveGame handleCommand(
+            UserGameCommand command,
+            Session session,
+            String username,
+            GameData game
+    ) {
         ChessGame.TeamColor team;
         if (username.equals(game.whiteUsername())) {
             team = ChessGame.TeamColor.WHITE;
@@ -120,14 +145,24 @@ public class ActiveGame {
                     case null -> addObserver(session);
                 };
                 if (valid) {
-                    res.set(new ServerMessage(game.game()));
+                    trySend(session, new ServerMessage(game.game()));
                 } else {
-                    res.set(new ServerMessage("Already taken", true));
+                    trySend(session, new ServerMessage("Already taken", true));
                 }
+                updateDatabase(game, game.game(), session);
             }
             case MAKE_MOVE -> {
             }
             case LEAVE -> {
+                boolean empty = switch (team) {
+                    case WHITE -> unsetWhite();
+                    case BLACK -> unsetBlack();
+                    case null -> removeObserver(session);
+                };
+                updateDatabase(game, game.game(), session);
+                if (empty) {
+                    return null;
+                }
             }
             case RESIGN -> {
             }

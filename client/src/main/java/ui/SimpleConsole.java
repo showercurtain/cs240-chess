@@ -18,17 +18,25 @@ public class SimpleConsole extends ChessConsole {
 
     @Override
     public void displayError(String message) {
+        if (prompting) {
+            System.out.print("\r");
+        }
         System.out.println(EscapeSequences.SET_TEXT_COLOR_RED+message+EscapeSequences.RESET_TEXT_COLOR);
         if (prompting) {
             System.out.print(prompt);
         }
+        System.out.flush();
     }
 
     @Override
     public void displayInfo(String message) {
+        if (prompting) {
+            System.out.print("\r");
+        }
         System.out.println(message);
         if (prompting) {
             System.out.print(prompt);
         }
+        System.out.flush();
     }
 }

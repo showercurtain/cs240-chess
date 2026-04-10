@@ -78,7 +78,6 @@ public class WebsocketHandler implements Consumer<WsConfig> {
         if (auth == null) {
             return;
         }
-        System.out.println("Received message of type " + command.commandType());
         AtomicReference<ServerMessage> res = new AtomicReference<>();
         games.compute(command.gameID(), (id, game) -> {
             GameData gameData;
@@ -89,21 +88,21 @@ public class WebsocketHandler implements Consumer<WsConfig> {
                 return game;
             }
             if (gameData == null) {
-                res.set(new ServerMessage("No such game", true));
+                res.set(new ServerMessage("Programmer error: Active game has no database counterpart", true));
                 return game;
             }
             if (game == null && command.commandType() == UserGameCommand.CommandType.CONNECT) {
-                game = new ActiveGame();
+                game = new ActiveGame(gson, gameDAO);
             } else if (game == null) {
-                res.set(new ServerMessage("No such game", true));
+                res.set(new ServerMessage("Game not active", true));
                 return null;
             }
 
-            return game.handleCommand(command, ctx.session, auth.username(), gameData, res);
+            return game.handleCommand(command, ctx.session, auth.username(), gameData);
+
         });
 
         if (res.get() != null) {
-            System.out.println("Sending message of type " + res.get().getServerMessageType());
             ctx.send(gson.toJson(res.get()));
         }
     }
