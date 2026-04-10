@@ -27,8 +27,8 @@ public class Repl {
     public Repl(ServerFacade server) throws IOException {
         auth = null;
         this.server = server;
-        this.terminal = new SimpleConsole();
-        //this.terminal = new FancyConsole(false);
+        //this.terminal = new SimpleConsole();
+        this.terminal = new FancyConsole();
         terminal.setPrompt("Chess> ");
         terminal.setCommands(getUnauthenticatedCommands());
         this.games = Collections.emptyList();
