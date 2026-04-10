@@ -132,7 +132,9 @@ public abstract class ChessConsole implements ChessTerminal {
     }
 
     private static String getPieceString(boolean outline, ChessPiece piece) {
-        if (piece == null) return EscapeSequences.EMPTY;
+        if (piece == null) {
+            return EscapeSequences.EMPTY;
+        }
         return outline ? switch (piece.getPieceType()) {
             case KING -> EscapeSequences.WHITE_KING;
             case QUEEN -> EscapeSequences.WHITE_QUEEN;
