@@ -1,6 +1,5 @@
 package server.websocket;
 
-import chess.ChessGame;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import dataaccess.AuthDAO;
@@ -12,7 +11,6 @@ import io.javalin.websocket.WsConnectContext;
 import io.javalin.websocket.WsMessageContext;
 import model.AuthData;
 import model.GameData;
-import org.eclipse.jetty.websocket.api.Session;
 import service.ServiceException;
 import websocket.commands.UserGameCommand;
 import websocket.messages.ServerMessage;

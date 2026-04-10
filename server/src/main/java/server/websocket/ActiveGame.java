@@ -178,7 +178,6 @@ public class ActiveGame {
                 } else {
                     trySend(session, new ServerMessage("Already taken", true));
                 }
-                //updateDatabase(game, game.game(), session, false);
             }
             case MAKE_MOVE -> {
                 if (team == null) {
