@@ -3,7 +3,6 @@ package websocket.messages;
 import chess.ChessGame;
 
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * Represents a Message the server can send through a WebSocket
@@ -13,9 +12,9 @@ import java.util.Optional;
  */
 public record ServerMessage(
         ServerMessageType serverMessageType,
-        Optional<ChessGame> game,
-        Optional<String> errorMessage,
-        Optional<String> message
+        ChessGame game,
+        String errorMessage,
+        String message
 ) {
 
 
@@ -32,18 +31,18 @@ public record ServerMessage(
     public ServerMessage(ChessGame game) {
         this(
                 ServerMessageType.LOAD_GAME,
-                Optional.of(game),
-                Optional.empty(),
-                Optional.empty()
+                game,
+                null,
+                null
         );
     }
 
     public ServerMessage(String message, boolean error) {
         this(
                 error ? ServerMessageType.ERROR : ServerMessageType.NOTIFICATION,
-                Optional.empty(),
-                error ? Optional.of(message) : Optional.empty(),
-                error ? Optional.empty() : Optional.of(message)
+                null,
+                error ? message : null,
+                error ? null : message
         );
     }
 

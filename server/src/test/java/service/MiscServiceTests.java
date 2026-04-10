@@ -5,6 +5,8 @@ import dataaccess.memory.MemoryGameDAO;
 import dataaccess.memory.MemoryUserDAO;
 import org.junit.jupiter.api.*;
 
+import java.util.concurrent.ConcurrentHashMap;
+
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class MiscServiceTests {
     private static MiscService service;
@@ -14,7 +16,8 @@ public class MiscServiceTests {
         service = new MiscService(
                 new MemoryAuthDAO(),
                 new MemoryGameDAO(),
-                new MemoryUserDAO());
+                new MemoryUserDAO(),
+                new ConcurrentHashMap<>());
     }
 
     @Test

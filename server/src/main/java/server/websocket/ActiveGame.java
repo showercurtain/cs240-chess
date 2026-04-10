@@ -1,6 +1,8 @@
 package server.websocket;
 
 import chess.ChessGame;
+import chess.ChessMove;
+import chess.InvalidMoveException;
 import com.google.gson.Gson;
 import dataaccess.GameDAO;
 import model.GameData;
@@ -31,6 +33,10 @@ public class ActiveGame {
         this.gameDAO = gameDAO;
     }
 
+    private void finish() {
+        this.finished = true;
+    }
+
     private static void trySend(Session to, String message) {
         if (to != null && to.isOpen()) {
             try {
@@ -45,7 +51,7 @@ public class ActiveGame {
         trySend(to, gson.toJson(message));
     }
 
-    private void updateDatabase(GameData gameData, ChessGame game, Session feedback, boolean empty) {
+    private void updateDatabase(GameData gameData, Session feedback, boolean empty) {
         try {
             if (finished && empty) {
                 gameDAO.removeGame(gameData.gameID());
@@ -55,7 +61,7 @@ public class ActiveGame {
                         whiteUsername,
                         blackUsername,
                         gameData.gameName(),
-                        game
+                        gameData.game()
                 ));
             }
         } catch (ServiceException e) {
@@ -78,13 +84,26 @@ public class ActiveGame {
         });
     }
 
-    private boolean addObserver(Session observer) {
+    private void announceObserver(ServerMessage message, Session from) {
+        String text = gson.toJson(message);
+        trySend(white, text);
+        trySend(black, text);
+        for (Session session : observers) {
+            if (session != from) {
+                trySend(session, text);
+            }
+        }
+    }
+
+    private boolean addObserver(Session observer, String username) {
         observers.add(observer);
+        announceObserver(new ServerMessage(username + " is observing"), observer);
         return true;
     }
 
-    public boolean removeObserver(Session observer) {
+    public boolean removeObserver(Session observer, String username) {
         observers.remove(observer);
+        announce(new ServerMessage(username + " left"), null);
         return observers.isEmpty() && black == null && white == null;
     }
 
@@ -152,7 +171,7 @@ public class ActiveGame {
                 boolean valid = switch (team) {
                     case WHITE -> setWhite(session, username);
                     case BLACK -> setBlack(session, username);
-                    case null -> addObserver(session);
+                    case null -> addObserver(session, username);
                 };
                 if (valid) {
                     trySend(session, new ServerMessage(game.game()));
@@ -168,15 +187,44 @@ public class ActiveGame {
                 }
                 if (finished) {
                     trySend(session, new ServerMessage("The game has already ended", true));
+                    return this;
                 }
+                if (team != game.game().getTeamTurn()) {
+                    trySend(session, new ServerMessage("You cannot move when it isn't your turn", true));
+                    return this;
+                }
+                ChessMove move = command.move();
+                try {
+                    game.game().makeMove(move);
+                } catch (InvalidMoveException e) {
+                    trySend(session, new ServerMessage(e.getMessage(), true));
+                    return this;
+                }
+                announce(new ServerMessage(
+                        ServerMessage.ServerMessageType.LOAD_GAME,
+                        game.game(), null, null), null);
+                announce(new ServerMessage(
+                        username + " moved " + move.startPosition() + " to " + move.endPosition() +
+                                (move.promotionPiece() == null ? "" : " and promoted their piece")), team);
+                if (game.game().isInStalemate(team.getOpposite())) {
+                    announce(new ServerMessage("Stalemate."), null);
+                    finish();
+                } else if (game.game().isInCheckmate(team.getOpposite())) {
+                    announce(new ServerMessage("Checkmate."), null);
+                    finish();
+                } else if (game.game().isInCheck(team.getOpposite())) {
+                    announce(new ServerMessage("Check."), null);
+                }
+                updateDatabase(game, session, false);
+
             }
             case LEAVE -> {
                 boolean empty = switch (team) {
                     case WHITE -> unsetWhite();
                     case BLACK -> unsetBlack();
-                    case null -> removeObserver(session);
+                    case null -> removeObserver(session, username);
                 };
-                updateDatabase(game, game.game(), session, empty);
+                updateDatabase(game, session, empty);
                 if (empty) {
                     return null;
                 }
@@ -188,14 +236,15 @@ public class ActiveGame {
                 }
                 if (finished) {
                     trySend(session, new ServerMessage("The game has already ended", true));
+                    return this;
                 }
-                finished = true;
+                finish();
 
                 String opponent = switch (team) {
                     case WHITE -> blackUsername;
                     case BLACK -> whiteUsername;
                 };
-                announce(new ServerMessage(username + " resigned. " + opponent + " wins!"), team);
+                announce(new ServerMessage(username + " resigned. " + opponent + " wins!"), null);
             }
         }
         return this;

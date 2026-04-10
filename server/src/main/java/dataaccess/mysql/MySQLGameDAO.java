@@ -90,7 +90,6 @@ public class MySQLGameDAO implements GameDAO {
 
     @Override
     public void updateGame(GameData game) throws DataAccessException {
-        System.out.println("Updating game");
         try (Connection conn = DatabaseManager.getConnection()) {
             String query = "UPDATE games SET whiteUsername = ?, blackUsername = ?, gameName = ?, game = ?  WHERE id = ?";
             try (PreparedStatement ps = conn.prepareStatement(query)) {

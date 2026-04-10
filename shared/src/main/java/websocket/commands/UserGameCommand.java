@@ -2,8 +2,6 @@ package websocket.commands;
 
 import chess.ChessMove;
 
-import java.util.Optional;
-
 /**
  * Represents a command a user can send the server over a websocket
  * <p>
@@ -14,7 +12,7 @@ public record UserGameCommand(
         CommandType commandType,
         String authToken,
         Integer gameID,
-        Optional<ChessMove> move
+        ChessMove move
 ) {
 
     public enum CommandType {

@@ -65,6 +65,9 @@ public class ChessGame {
         public String toString() {
             return name().toLowerCase();
         }
+        public TeamColor getOpposite() {
+            return this == WHITE ? BLACK : WHITE;
+        }
     }
 
     private Collection<ChessMove> castleMoves(TeamColor team) {

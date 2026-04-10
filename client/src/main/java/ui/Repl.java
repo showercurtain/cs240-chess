@@ -210,15 +210,17 @@ public class Repl {
                     if (state == null) {
                         return;
                     }
-                    state = message.game().orElse(state);
+
+                    state = message.game();
+
                     terminal.showBoard(state, team, null);
                 }
             }
             case ERROR -> {
-                terminal.displayError(message.errorMessage().orElse("Unknown server error"));
+                terminal.displayError(message.errorMessage());
             }
             case NOTIFICATION -> {
-                terminal.displayInfo(message.message().orElse("The server is broken :D"));
+                terminal.displayInfo(message.message());
             }
         }
     }
@@ -244,6 +246,58 @@ public class Repl {
 
     private Collection<String> getValidHighlights(Map<String, String> args) {
         return state.getBoard().getPieces().keySet().stream().map(ChessPosition::toString).collect(Collectors.toSet());
+    }
+
+    private Collection<String> getValidStartPositions(Map<String, String> args) {
+        ArrayList<ChessMove> moves = new ArrayList<>();
+        for (Map.Entry<ChessPosition, ChessPiece> piece : state.getBoard().getPieces().entrySet()) {
+            if (piece.getValue().getTeamColor().equals(team)) {
+                moves.addAll(state.validMoves(piece.getKey()));
+            }
+        }
+        return moves.stream().map(ChessMove::getStartPosition).map(ChessPosition::toString).collect(Collectors.toSet());
+    }
+
+    private Collection<String> getValidEndPositions(Map<String, String> args) {
+        ChessPosition start = ChessPosition.fromString(args.get("start"));
+        return state.validMoves(start).stream().map(ChessMove::getEndPosition).map(ChessPosition::toString).collect(Collectors.toSet());
+    }
+
+    private void makeMove(Map<String, String> args) throws ServerException {
+        ChessPosition start = ChessPosition.fromString(args.get("start"));
+        ChessPosition end = ChessPosition.fromString(args.get("end"));
+        List<ChessMove> moves = state.validMoves(start).stream()
+                .filter(move -> move.endPosition().equals(end))
+                .toList();
+        if (moves.isEmpty()) {
+            terminal.displayError("Invalid move");
+            return;
+        }
+        ChessMove move;
+        if (moves.size() > 1) {
+            ChessPiece.PieceType piece;
+            while (true) {
+                String promotion = terminal.prompt("Promotion piece: ", false);
+                piece = switch (promotion) {
+                    case ("queen") -> ChessPiece.PieceType.QUEEN;
+                    case ("rook") -> ChessPiece.PieceType.ROOK;
+                    case ("knight") -> ChessPiece.PieceType.KNIGHT;
+                    case ("bishop") -> ChessPiece.PieceType.BISHOP;
+                    default -> null;
+                };
+                if (piece == null) {
+                    terminal.displayError("Invalid piece");
+                    terminal.displayInfo("Can be q, r, b, or n for Queen, Rook, Bishop, or Knight");
+                } else {
+                    break;
+                }
+            }
+            move = new ChessMove(start, end, piece);
+        } else {
+            move = moves.getFirst();
+        }
+
+        server.wsCommand(UserGameCommand.CommandType.MAKE_MOVE, auth, gameID, move);
     }
 
     private void highlight(Map<String, String> args) {
@@ -290,6 +344,9 @@ public class Repl {
                 Command.makeCommand(terminal::displayHelp, "help", "Display this help menu"),
                 Command.makeCommand(this::redrawBoard, "redraw", "Redraws the current chess board"),
                 Command.makeCommand(this::leaveGame, "leave", "Leave the game you are in"),
+                Command.makeCommand(this::makeMove, "move", "Move one of your pieces",
+                        List.of("start", "end"), Collections.emptyList(),
+                        Map.of("start", this::getValidStartPositions, "end", this::getValidEndPositions)),
                 Command.makeCommand(this::highlight, "highlight", "Highlight valid moves for a piece",
                         List.of("position"), Collections.emptyList(),
                         Map.of("position", this::getValidHighlights)),

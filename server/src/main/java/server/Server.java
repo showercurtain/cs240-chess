@@ -36,9 +36,11 @@ public class Server {
             throw new RuntimeException(e);
         }
 
+        WebsocketHandler websocketHandler = new WebsocketHandler(gson, authDAO, gameDAO);
+
         UserService userService = new UserService(authDAO, userDAO);
         GameService gameService = new GameService(gameDAO);
-        MiscService miscService = new MiscService(authDAO, gameDAO, userDAO);
+        MiscService miscService = new MiscService(authDAO, gameDAO, userDAO, websocketHandler.games);
 
         javalin.post("/user",
                 new GenericHandler<>(
@@ -113,7 +115,7 @@ public class Server {
                         false
                 ));
 
-        javalin.ws("/ws", new WebsocketHandler(gson, authDAO, gameDAO));
+        javalin.ws("/ws", websocketHandler);
     }
 
     public int run(int desiredPort) {

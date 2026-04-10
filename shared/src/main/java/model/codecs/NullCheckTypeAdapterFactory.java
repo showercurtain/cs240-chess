@@ -1,5 +1,6 @@
 package model.codecs;
 
+import chess.ChessMove;
 import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
 import com.google.gson.TypeAdapter;
@@ -7,6 +8,9 @@ import com.google.gson.TypeAdapterFactory;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
+import model.GameData;
+import websocket.commands.UserGameCommand;
+import websocket.messages.ServerMessage;
 
 import java.io.IOException;
 import java.lang.reflect.RecordComponent;
@@ -19,7 +23,11 @@ public class NullCheckTypeAdapterFactory implements TypeAdapterFactory {
     @Override
     public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> typeToken) {
         Class<? super T> rawType = typeToken.getRawType();
-        if (!rawType.isRecord()) {
+        if (!rawType.isRecord()
+                || rawType == GameData.class
+                || rawType == UserGameCommand.class
+                || rawType == ServerMessage.class
+                || rawType == ChessMove.class) {
             return null;
         }
 

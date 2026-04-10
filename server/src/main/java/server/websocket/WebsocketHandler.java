@@ -22,24 +22,12 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 public class WebsocketHandler implements Consumer<WsConfig> {
-    private static class SessionState {
-        private enum SessionStateType {
-            NotPlaying,
-            InGame,
-            Observing;
-        }
-
-        SessionStateType type = SessionStateType.NotPlaying;
-        int gameID = -1;
-        ChessGame.TeamColor team = null;
-    }
 
     AuthDAO authDAO;
     GameDAO gameDAO;
 
     final Gson gson;
-    final ConcurrentHashMap<Session, SessionState> connections = new ConcurrentHashMap<>();
-    final ConcurrentHashMap<Integer, ActiveGame> games = new ConcurrentHashMap<>();
+    public final ConcurrentHashMap<Integer, ActiveGame> games = new ConcurrentHashMap<>();
 
     public WebsocketHandler(Gson gson, AuthDAO authDAO, GameDAO gameDAO) {
         this.gson = gson;
@@ -63,11 +51,11 @@ public class WebsocketHandler implements Consumer<WsConfig> {
 
     private void handleConnect(WsConnectContext ctx) {
         ctx.enableAutomaticPings();
-        connections.put(ctx.session, new SessionState());
     }
 
     private void handleMessage(WsMessageContext ctx) {
         UserGameCommand command;
+        System.out.println(ctx.message());
         try {
             command = gson.fromJson(ctx.message(), UserGameCommand.class);
         } catch (JsonSyntaxException e) {
@@ -108,19 +96,6 @@ public class WebsocketHandler implements Consumer<WsConfig> {
     }
 
     private void handleClose(WsCloseContext ctx) {
-        SessionState state = connections.remove(ctx.session);
-        if (state == null || state.type == SessionState.SessionStateType.NotPlaying) {
-            return;
-        }
-
-        games.computeIfPresent(state.gameID, (_id, game) -> {
-            boolean remove = switch (state.team) {
-                case WHITE -> game.unsetWhite();
-                case BLACK -> game.unsetBlack();
-                case null -> game.removeObserver(ctx.session);
-            };
-            return remove ? null : game;
-        });
     }
 
     @Override

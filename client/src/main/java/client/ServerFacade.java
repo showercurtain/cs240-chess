@@ -19,7 +19,6 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Consumer;
 
 public class ServerFacade {
@@ -27,7 +26,7 @@ public class ServerFacade {
 
     private static final Duration TIMEOUT = Duration.ofSeconds(5);
     private final HttpClient httpClient = HttpClient.newHttpClient();
-    private final Gson gson = GsonUtil.buildRelaxedGson();
+    private final Gson gson = GsonUtil.buildGson();
     private final URI serverHttpURI;
     private final URI serverWsURI;
     private Session session;
@@ -137,7 +136,7 @@ public class ServerFacade {
     public void wsCommand(UserGameCommand.CommandType command, AuthData auth, int gameID, ChessMove move) throws ServerException {
         if (session != null && session.isOpen()) {
             UserGameCommand message = new UserGameCommand(
-                    command, auth.authToken(), gameID, Optional.ofNullable(move)
+                    command, auth.authToken(), gameID, move
             );
             try {
                 session.getBasicRemote().sendText(gson.toJson(message));
