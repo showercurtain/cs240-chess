@@ -90,6 +90,7 @@ public class MySQLGameDAO implements GameDAO {
 
     @Override
     public void updateGame(GameData game) throws DataAccessException {
+        System.out.println("Updating game");
         try (Connection conn = DatabaseManager.getConnection()) {
             String query = "UPDATE games SET whiteUsername = ?, blackUsername = ?, gameName = ?, game = ?  WHERE id = ?";
             try (PreparedStatement ps = conn.prepareStatement(query)) {
@@ -145,6 +146,21 @@ CREATE TABLE IF NOT EXISTS games (
 """);
                 statement.addBatch("ALTER TABLE games AUTO_INCREMENT=1");
                 statement.executeBatch();
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException(e);
+        }
+    }
+
+    @Override
+    public void removeGame(int identifier) throws DataAccessException {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            String query = "DELETE FROM games WHERE id = ?";
+            try (PreparedStatement ps = conn.prepareStatement(query)) {
+                ps.setInt(1, identifier);
+                if (ps.executeUpdate() == 0) {
+                    throw new DataAccessException("No such game").withError(400);
+                }
             }
         } catch (SQLException e) {
             throw new DataAccessException(e);

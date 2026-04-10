@@ -233,6 +233,7 @@ public class Repl {
             server.closeWebsocket();
             state = null;
         }
+        games = Collections.emptyList();
         terminal.setCommands(getAuthenticatedCommands());
         terminal.setPrompt("Chess [" + auth.username() + "]> ");
     }
@@ -242,13 +243,17 @@ public class Repl {
     }
 
     private Collection<String> getValidHighlights(Map<String, String> args) {
-        return state.getBoard().getPieces().keySet().stream().map(ChessPosition::toString).collect(Collectors.toCollection(ArrayList::new));
+        return state.getBoard().getPieces().keySet().stream().map(ChessPosition::toString).collect(Collectors.toSet());
     }
 
     private void highlight(Map<String, String> args) {
         String pos = args.get("position");
         ChessPosition position = ChessPosition.fromString(pos);
         terminal.showBoard(state, team, position);
+    }
+
+    private void resign() throws ServerException {
+        server.wsCommand(UserGameCommand.CommandType.RESIGN, auth, gameID, null);
     }
 
     private List<Command> getUnauthenticatedCommands() {
@@ -287,7 +292,8 @@ public class Repl {
                 Command.makeCommand(this::leaveGame, "leave", "Leave the game you are in"),
                 Command.makeCommand(this::highlight, "highlight", "Highlight valid moves for a piece",
                         List.of("position"), Collections.emptyList(),
-                        Map.of("position", this::getValidHighlights))
+                        Map.of("position", this::getValidHighlights)),
+                Command.makeCommand(this::resign, "resign", "Resign the game")
         );
     }
 
@@ -295,6 +301,9 @@ public class Repl {
         return List.of(
                 Command.makeCommand(terminal::displayHelp, "help", "Display this help menu"),
                 Command.makeCommand(this::redrawBoard, "redraw", "Redraws the current chess board"),
+                Command.makeCommand(this::highlight, "highlight", "Highlight valid moves for a piece",
+                        List.of("position"), Collections.emptyList(),
+                        Map.of("position", this::getValidHighlights)),
                 Command.makeCommand(this::leaveGame, "leave", "Leave the game you are observing")
         );
     }

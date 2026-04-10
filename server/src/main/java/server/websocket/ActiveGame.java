@@ -19,12 +19,14 @@ public class ActiveGame {
     String blackUsername;
     Gson gson;
     GameDAO gameDAO;
+    boolean finished;
     final HashSet<Session> observers;
 
     public ActiveGame(Gson gson, GameDAO gameDAO) {
         white = null;
         black = null;
         observers = new HashSet<>();
+        finished = false;
         this.gson = gson;
         this.gameDAO = gameDAO;
     }
@@ -43,15 +45,19 @@ public class ActiveGame {
         trySend(to, gson.toJson(message));
     }
 
-    private void updateDatabase(GameData gameData, ChessGame game, Session feedback) {
+    private void updateDatabase(GameData gameData, ChessGame game, Session feedback, boolean empty) {
         try {
-            gameDAO.updateGame(new GameData(
-                    gameData.gameID(),
-                    whiteUsername,
-                    blackUsername,
-                    gameData.gameName(),
-                    game
-            ));
+            if (finished && empty) {
+                gameDAO.removeGame(gameData.gameID());
+            } else {
+                gameDAO.updateGame(new GameData(
+                        gameData.gameID(),
+                        whiteUsername,
+                        blackUsername,
+                        gameData.gameName(),
+                        game
+                ));
+            }
         } catch (ServiceException e) {
             trySend(feedback, new ServerMessage(e.getMessage(), true));
         }
@@ -63,7 +69,7 @@ public class ActiveGame {
             trySend(white, text);
             trySend(black, text);
         } else {
-            Session recipient = from == ChessGame.TeamColor.WHITE ? white : black;
+            Session recipient = from == ChessGame.TeamColor.WHITE ? black : white;
             trySend(recipient, text);
         }
 
@@ -104,20 +110,24 @@ public class ActiveGame {
 
     public boolean unsetWhite() {
         white = null;
+        String username = whiteUsername;
+        whiteUsername = null;
         if (this.black == null && observers.isEmpty()) {
             return true;
         } else {
-            announce(new ServerMessage(whiteUsername + " left the game"), ChessGame.TeamColor.WHITE);
+            announce(new ServerMessage(username + " left the game"), ChessGame.TeamColor.WHITE);
             return false;
         }
     }
 
     public boolean unsetBlack() {
         black = null;
+        String username = blackUsername;
+        blackUsername = null;
         if (this.white == null && observers.isEmpty()) {
             return true;
         } else {
-            announce(new ServerMessage(blackUsername + " left the game"), ChessGame.TeamColor.BLACK);
+            announce(new ServerMessage(username + " left the game"), ChessGame.TeamColor.BLACK);
             return false;
         }
     }
@@ -149,9 +159,16 @@ public class ActiveGame {
                 } else {
                     trySend(session, new ServerMessage("Already taken", true));
                 }
-                updateDatabase(game, game.game(), session);
+                //updateDatabase(game, game.game(), session, false);
             }
             case MAKE_MOVE -> {
+                if (team == null) {
+                    trySend(session, new ServerMessage("Observers can't move pieces!", true));
+                    return this;
+                }
+                if (finished) {
+                    trySend(session, new ServerMessage("The game has already ended", true));
+                }
             }
             case LEAVE -> {
                 boolean empty = switch (team) {
@@ -159,12 +176,26 @@ public class ActiveGame {
                     case BLACK -> unsetBlack();
                     case null -> removeObserver(session);
                 };
-                updateDatabase(game, game.game(), session);
+                updateDatabase(game, game.game(), session, empty);
                 if (empty) {
                     return null;
                 }
             }
             case RESIGN -> {
+                if (team == null) {
+                    trySend(session, new ServerMessage("Observers can't resign!", true));
+                    return this;
+                }
+                if (finished) {
+                    trySend(session, new ServerMessage("The game has already ended", true));
+                }
+                finished = true;
+
+                String opponent = switch (team) {
+                    case WHITE -> blackUsername;
+                    case BLACK -> whiteUsername;
+                };
+                announce(new ServerMessage(username + " resigned. " + opponent + " wins!"), team);
             }
         }
         return this;

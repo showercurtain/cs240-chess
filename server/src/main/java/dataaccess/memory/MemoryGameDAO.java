@@ -65,4 +65,9 @@ public class MemoryGameDAO implements GameDAO {
 
     @Override
     public void initTable() { }
+
+    @Override
+    public void removeGame(int identifier) throws DataAccessException {
+        data.remove(identifier);
+    }
 }

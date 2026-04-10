@@ -13,4 +13,5 @@ public interface GameDAO {
     void updateGame(GameData game) throws DataAccessException;
     void clear() throws DataAccessException;
     void initTable() throws DataAccessException;
+    void removeGame(int identifier) throws DataAccessException;
 }
